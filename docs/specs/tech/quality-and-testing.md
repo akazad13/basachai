@@ -132,6 +132,8 @@ export default defineConfig({
 
 Every feature test runs in all three projects unless it says otherwise with `test.skip`. Journeys (`e2e/journeys`) run once, in `bn-desktop`: they open their own phone and desktop actors and use Bangla paths.
 
+A test has 45 seconds. Journeys (tagged `@journey`) have 2 minutes: they drive several actors through whole flows, and on a busy CI runner the longest ones (JRN-04) came close to 45 seconds.
+
 ### Fixtures
 
 ```ts
@@ -156,10 +158,16 @@ type Fixtures = {
   clock: (offsetDays: number) => Promise<void>;
   act: (listingId: string, action: string, data?: Record<string, unknown>) => Promise<void>;
   signInAs: (role: Role) => Promise<void>;
+  journeyTime: void;
 };
 
 export const test = base.extend<Fixtures>({
   lang: ['bn', { option: true }],
+  // Journeys drive several actors through a whole flow: 2 minutes instead of the 45 s every other test gets.
+  journeyTime: [async ({}, use, info) => {
+    if (info.tags.includes('@journey')) info.setTimeout(120_000);
+    await use();
+  }, { auto: true }],
   t: async ({ lang }, use) => {
     await use((key, vars = {}) =>
       Object.entries(vars).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, String(v)), MESSAGES[lang][key] ?? key));

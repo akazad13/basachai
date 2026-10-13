@@ -20,10 +20,16 @@ type Fixtures = {
   clock: (offsetDays: number) => Promise<void>;
   act: (listingId: string, action: string, data?: Record<string, unknown>) => Promise<void>;
   signInAs: (role: Role) => Promise<void>;
+  journeyTime: void;
 };
 
 export const test = base.extend<Fixtures>({
   lang: ['bn', { option: true }],
+  // Journeys drive several actors through a whole flow: 2 minutes instead of the 45 s every other test gets.
+  journeyTime: [async ({}, use, info) => {
+    if (info.tags.includes('@journey')) info.setTimeout(120_000);
+    await use();
+  }, { auto: true }],
   t: async ({ lang }, use) => {
     await use((key, vars = {}) =>
       Object.entries(vars).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, String(v)), MESSAGES[lang][key] ?? key));
