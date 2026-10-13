@@ -1,0 +1,57 @@
+# Origin TLS for Cloudflare "Full (strict)". TLS_MODE=origin uses the Cloudflare origin certificate in
+# ${CONFIG_DIR}/certs; TLS_MODE=internal uses Caddy's local CA (local runs only).
+{
+	admin off
+}
+
+(tls-origin) {
+	tls /certs/origin.pem /certs/origin.key
+}
+
+(tls-internal) {
+	tls internal
+}
+
+# The firewall admits only Cloudflare, but any Cloudflare customer could point their own zone at this server.
+# A Cloudflare Transform Rule on our zone adds X-Origin-Secret; requests without it are refused, and the header
+# is not passed on. ORIGIN_CHECK=off only for local runs.
+(origin-secret) {
+	@outside not header X-Origin-Secret {$ORIGIN_SECRET}
+	# `route` keeps this order; on their own Caddy would strip the header before checking it.
+	route {
+		respond @outside 403
+		request_header -X-Origin-Secret
+	}
+}
+
+(origin-off) {
+}
+
+(api-site) {
+	import tls-{$TLS_MODE}
+	import origin-{$ORIGIN_CHECK}
+	encode zstd gzip
+	# One 10 MB photo plus multipart overhead; the API enforces the same 12 MB limit.
+	request_body {
+		max_size 12MiB
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		-Server
+	}
+}
+
+{$API_DOMAIN} {
+	import api-site
+	reverse_proxy api-production:8080 {
+		health_uri /health/live
+		health_interval 15s
+	}
+}
+
+# Staging, while its Compose project is running; 502 otherwise.
+{$STAGING_API_DOMAIN} {
+	import api-site
+	reverse_proxy api-staging:8080
+}

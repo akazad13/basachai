@@ -1,0 +1,4 @@
+# Shell scripts run on Linux: keep LF line endings even when checked out on Windows.
+*.sh text eol=lf
+Caddyfile text eol=lf
+deploy/env/*.env text eol=lf

@@ -1,0 +1,99 @@
+# One VPS: Caddy, the API and PostgreSQL (architecture spec, Server layout). Run it through deploy/compose.sh,
+# which picks the project name and settings for production, staging or local.
+#
+# Production and staging are separate Compose projects. Production's Caddy (profile "edge") serves both API hosts
+# and reaches each API over the shared "basachai-edge" network, so staging needs no port of its own.
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "5" }
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    mem_limit: ${PG_MEM:-1536m}
+    command: >
+      postgres -c shared_buffers=${PG_SHARED_BUFFERS:-768MB} -c effective_cache_size=${PG_CACHE_SIZE:-2GB}
+      -c work_mem=8MB -c max_connections=40
+    env_file: ["${CONFIG_DIR}/db.env"]
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init-roles.sh:/docker-entrypoint-initdb.d/10-roles.sh:ro
+    healthcheck:
+      # Over TCP: during first-time init the entrypoint's temporary server answers only on the socket,
+      # so this stays unhealthy until the roles exist and the real server listens.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging: *logging
+    # No ports: PostgreSQL is reachable only from the API's network.
+
+  # One-off: `deploy/compose.sh <env> run --rm migrate` applies migrations with the migration role.
+  migrate:
+    image: ${API_IMAGE}
+    profiles: ["tools"]
+    command: ["migrate"]
+    env_file: ["${CONFIG_DIR}/api.env", "${CONFIG_DIR}/migrate.env"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${APP_ENV}
+      Database__ApiRole: basachai_api
+    depends_on:
+      postgres: { condition: service_healthy }
+    logging: *logging
+
+  api:
+    image: ${API_IMAGE}
+    build: { context: .., dockerfile: deploy/api.Dockerfile }
+    restart: unless-stopped
+    mem_limit: ${API_MEM:-1g}
+    env_file: ["${CONFIG_DIR}/api.env"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${APP_ENV}
+      Database__MigrateOnStart: "false"
+      # Trust X-Forwarded-Proto only from Caddy's fixed address on the edge network.
+      Network__KnownProxies__0: 172.30.0.10
+    volumes:
+      - dpkeys:/keys
+    depends_on:
+      postgres: { condition: service_healthy }
+    networks:
+      default: {}
+      edge: { aliases: ["${API_ALIAS}"] }
+    logging: *logging
+
+  caddy:
+    image: caddy:2.10
+    profiles: ["edge"]
+    restart: unless-stopped
+    mem_limit: 128m
+    ports: ["${HTTPS_PORT:-443}:443"]
+    # ORIGIN_SECRET: the value Cloudflare adds as X-Origin-Secret (see Caddyfile).
+    env_file: ["${CONFIG_DIR}/caddy.env"]
+    environment:
+      API_DOMAIN: ${API_DOMAIN}
+      STAGING_API_DOMAIN: ${STAGING_API_DOMAIN:-staging.invalid}
+      TLS_MODE: ${TLS_MODE:-origin}
+      ORIGIN_CHECK: ${ORIGIN_CHECK:-secret}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${CONFIG_DIR}/certs:/certs:ro
+      - caddy_data:/data
+    networks:
+      edge: { ipv4_address: 172.30.0.10 }
+    logging: *logging
+
+volumes:
+  pgdata:
+  # The Data Protection key ring: it decrypts stored addresses, so backup.sh copies it every night.
+  dpkeys:
+  caddy_data:
+
+networks:
+  edge:
+    external: true
+    name: basachai-edge

@@ -1,0 +1,1029 @@
+{
+  "about": "Pilot test dataset. Mirrors BasaChai-Prototype.html. Times are relative to the seed time. Passwords are not stored here: the seeder uses Seed:Password (E2E_PASSWORD).",
+  "homeCostExample": "D3",
+  "users": [
+    {
+      "key": "tenant",
+      "name": "টেস্ট ভাড়াটিয়া",
+      "phone": "01755000001",
+      "roles": [
+        "member"
+      ]
+    },
+    {
+      "key": "moderator",
+      "name": "টেস্ট মডারেটর",
+      "phone": "01755000002",
+      "roles": [
+        "member",
+        "moderator"
+      ],
+      "twoFactor": true
+    },
+    {
+      "key": "admin",
+      "name": "টেস্ট অ্যাডমিন",
+      "phone": "01755000003",
+      "roles": [
+        "member",
+        "moderator",
+        "admin"
+      ],
+      "twoFactor": true
+    },
+    {
+      "key": "moderator_new",
+      "name": "নতুন মডারেটর",
+      "phone": "01755000004",
+      "roles": [
+        "member",
+        "moderator"
+      ]
+    },
+    {
+      "key": "owner",
+      "name": "নাসরিন আক্তার",
+      "nameEn": "Nasrin Akter",
+      "phone": "01700000101",
+      "roles": [
+        "member",
+        "owner"
+      ]
+    },
+    {
+      "key": "owner2",
+      "name": "আব্দুল কাদের",
+      "nameEn": "Abdul Kader",
+      "phone": "01800000202",
+      "roles": [
+        "member",
+        "owner"
+      ]
+    },
+    {
+      "key": "owner3",
+      "name": "শাহানা পারভীন",
+      "nameEn": "Shahana Parvin",
+      "phone": "01900000303",
+      "roles": [
+        "member",
+        "owner"
+      ]
+    },
+    {
+      "key": "owner4",
+      "name": "রফিকুল ইসলাম",
+      "nameEn": "Rafiqul Islam",
+      "phone": "01600000404",
+      "roles": [
+        "member",
+        "owner"
+      ]
+    },
+    {
+      "key": "owner5",
+      "name": "জাহিদ হোসেন",
+      "nameEn": "Zahid Hossain",
+      "phone": "01500000505",
+      "roles": [
+        "member",
+        "owner"
+      ]
+    },
+    {
+      "key": "owner6",
+      "name": "মমতাজ বেগম",
+      "nameEn": "Momtaz Begum",
+      "phone": "01300000606",
+      "roles": [
+        "member",
+        "owner"
+      ]
+    },
+    {
+      "key": "owner7",
+      "name": "সাইফুল আলম",
+      "nameEn": "Saiful Alam",
+      "phone": "01400000707",
+      "roles": [
+        "member",
+        "owner"
+      ]
+    },
+    {
+      "key": "owner8",
+      "name": "হাবিবুর রহমান",
+      "nameEn": "Habibur Rahman",
+      "phone": "01700000808",
+      "roles": [
+        "member",
+        "owner"
+      ]
+    },
+    {
+      "key": "owner9",
+      "name": "রোকসানা খাতুন",
+      "nameEn": "Rokshana Khatun",
+      "phone": "01800000909",
+      "roles": [
+        "member",
+        "owner"
+      ]
+    },
+    {
+      "key": "owner10",
+      "name": "মো. আনোয়ার হোসেন",
+      "nameEn": "Md. Anwar Hossain",
+      "phone": "01900001010",
+      "roles": [
+        "member",
+        "owner"
+      ]
+    }
+  ],
+  "listings": [
+    {
+      "id": "A1",
+      "owner": "owner2",
+      "type": "flat",
+      "area": "amin",
+      "title": "আমিন মডেল টাউনে ৩ শোবার ঘরের ফ্ল্যাট",
+      "description": "পরিকল্পিত আবাসিক এলাকা, চওড়া রাস্তা। ২৪ ঘণ্টা নিরাপত্তা প্রহরী।",
+      "rules": "পরিবারকে অগ্রাধিকার দেওয়া হবে। রাত ১১টার পর মূল গেট বন্ধ থাকে।",
+      "rent": 15000,
+      "service": 1500,
+      "advance": 30000,
+      "others": [
+        {
+          "label": "গ্যাস বিল (ডাবল চুলা)",
+          "amount": 1080,
+          "period": "monthly"
+        }
+      ],
+      "beds": 3,
+      "baths": 2,
+      "sqft": 1250,
+      "floor": 3,
+      "furnish": "semi",
+      "occ": "family",
+      "availInDays": 0,
+      "amenities": [
+        "parking",
+        "generator",
+        "gas",
+        "security",
+        "balcony"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 2,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 12,
+      "reason": null,
+      "views": 142,
+      "reveals": 15,
+      "photos": [
+        "1749057505319-6e6c7f2789af",
+        "1651766231012-8d8a4b2e20dc",
+        "1633604712918-6ab1173d0ecd",
+        "1529423374493-8b2f78fd2437",
+        "1711699487800-fcf3a0af45ba",
+        "1552321554-5fefe8c9ef14",
+        "1649083048819-3fcd37423f45",
+        "1677959098115-1aafeb9313c0"
+      ]
+    },
+    {
+      "id": "A2",
+      "owner": "owner5",
+      "type": "flat",
+      "area": "amin",
+      "title": "আমিন মডেল টাউনে আসবাবসহ ২ শোবার ঘর",
+      "description": "সম্পূর্ণ আসবাবসহ: খাট, সোফা, ফ্রিজ ও ওয়াশিং মেশিন। লিফট আছে।",
+      "rules": null,
+      "rent": 18000,
+      "service": 2000,
+      "advance": 36000,
+      "others": [],
+      "beds": 2,
+      "baths": 2,
+      "sqft": 950,
+      "floor": 4,
+      "furnish": "furnished",
+      "occ": "any",
+      "availInDays": 7,
+      "amenities": [
+        "lift",
+        "generator",
+        "gas",
+        "security"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 5,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 5,
+      "reason": null,
+      "views": 76,
+      "reveals": 8,
+      "photos": [
+        "1732870812739-bcd81a66468f",
+        "1649083048819-3fcd37423f45",
+        "1645237455598-e8f02d706a4e",
+        "1725483990150-61a9fbd746d1",
+        "1708223578831-5c737a3074ab",
+        "1643949700215-e61cdca053f7",
+        "1662352137320-d1ac1494c8f1"
+      ]
+    },
+    {
+      "id": "A3",
+      "owner": "owner8",
+      "type": "flat",
+      "area": "amin",
+      "title": "আমিন মডেল টাউনে শিক্ষার্থীদের জন্য স্টুডিও",
+      "description": "খাট ও পড়ার টেবিল আছে। শান্ত পরিবেশ।",
+      "rules": "শিক্ষার্থীদের জন্য। ধূমপান নিষেধ।",
+      "rent": 8500,
+      "service": 800,
+      "advance": 17000,
+      "others": [],
+      "beds": 0,
+      "baths": 1,
+      "sqft": 400,
+      "floor": 2,
+      "furnish": "semi",
+      "occ": "students",
+      "availInDays": 0,
+      "amenities": [
+        "gas",
+        "security"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 9,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 30,
+      "reason": null,
+      "views": 98,
+      "reveals": 12,
+      "photos": [
+        "1661111779164-2b43524cda54",
+        "1662352137320-d1ac1494c8f1",
+        "1787390629829-abb32b3025c5",
+        "1633536704679-de310869515b"
+      ]
+    },
+    {
+      "id": "B1",
+      "owner": "owner3",
+      "type": "house",
+      "area": "barat",
+      "title": "বরাত নগরে আধাপাকা বাড়ি, ২টি ঘর",
+      "description": "টিনের ছাদ, পাকা মেঝে। নিজস্ব উঠান ও টিউবওয়েল।",
+      "rules": null,
+      "rent": 6000,
+      "service": 0,
+      "advance": 12000,
+      "others": [
+        {
+          "label": "বিদ্যুৎ বিল",
+          "amount": null,
+          "period": "monthly"
+        }
+      ],
+      "beds": 2,
+      "baths": 1,
+      "sqft": null,
+      "floor": 0,
+      "furnish": "unfurnished",
+      "occ": "family",
+      "availInDays": 0,
+      "amenities": [
+        "yard"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 1,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 6,
+      "reason": null,
+      "views": 51,
+      "reveals": 6,
+      "photos": [
+        "1646037884775-7258456e8348",
+        "1649083048819-3fcd37423f45",
+        "1691958050227-85762ee1cea5",
+        "1755921739344-d94ea3d9ed8b"
+      ]
+    },
+    {
+      "id": "B2",
+      "owner": "owner4",
+      "type": "flat",
+      "area": "barat",
+      "title": "বরাত নগরে ২ শোবার ঘরের ফ্ল্যাট",
+      "description": "প্রধান সড়ক থেকে দুই মিনিট। দক্ষিণমুখী বারান্দা।",
+      "rules": null,
+      "rent": 9000,
+      "service": 600,
+      "advance": 18000,
+      "others": [
+        {
+          "label": "গ্যাস বিল (ডাবল চুলা)",
+          "amount": 1080,
+          "period": "monthly"
+        }
+      ],
+      "beds": 2,
+      "baths": 1,
+      "sqft": 700,
+      "floor": 1,
+      "furnish": "unfurnished",
+      "occ": "any",
+      "availInDays": 0,
+      "amenities": [
+        "gas",
+        "balcony"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 4,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 18,
+      "reason": null,
+      "views": 88,
+      "reveals": 9,
+      "photos": [
+        "1765396576098-6a44270700d1",
+        "1662352137320-d1ac1494c8f1",
+        "1787390629829-abb32b3025c5",
+        "1529423374493-8b2f78fd2437",
+        "1711699487800-fcf3a0af45ba"
+      ]
+    },
+    {
+      "id": "B3",
+      "owner": "owner9",
+      "type": "flat",
+      "area": "barat",
+      "title": "বরাত নগরে ব্যাচেলরদের জন্য ১ শোবার ঘর",
+      "description": "আলাদা মিটার। কাছেই চায়ের দোকান ও মসজিদ।",
+      "rules": "শুধু চাকরিজীবী ব্যাচেলর।",
+      "rent": 4500,
+      "service": 0,
+      "advance": null,
+      "others": [
+        {
+          "label": "বিদ্যুৎ বিল",
+          "amount": null,
+          "period": "monthly"
+        }
+      ],
+      "beds": 1,
+      "baths": 1,
+      "sqft": 300,
+      "floor": 1,
+      "furnish": "unfurnished",
+      "occ": "bachelor",
+      "availInDays": 0,
+      "amenities": [],
+      "status": "published",
+      "confirmedDaysAgo": 11,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 40,
+      "reason": null,
+      "views": 130,
+      "reveals": 19,
+      "photos": [
+        "1566581068035-4fc53781ae9d",
+        "1633605016186-a8a919b14f5d",
+        "1633604712918-6ab1173d0ecd"
+      ]
+    },
+    {
+      "id": "D1",
+      "owner": "owner2",
+      "type": "house",
+      "area": "dokkhin",
+      "title": "দক্ষিণ পাড়ায় বাড়ির নিচতলা, ৩ শোবার ঘর",
+      "description": "বড় উঠান ও গাড়ি রাখার জায়গা। পরিবারের জন্য উপযুক্ত।",
+      "rules": null,
+      "rent": 13000,
+      "service": 0,
+      "advance": 26000,
+      "others": [],
+      "beds": 3,
+      "baths": 2,
+      "sqft": 1200,
+      "floor": 0,
+      "furnish": "unfurnished",
+      "occ": "family",
+      "availInDays": 30,
+      "amenities": [
+        "parking",
+        "roof",
+        "yard"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 7,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 7,
+      "reason": null,
+      "views": 47,
+      "reveals": 4,
+      "photos": [
+        "1767154966831-9607c8322a5a",
+        "1633605016186-a8a919b14f5d",
+        "1725483990150-61a9fbd746d1",
+        "1648682149870-071f63d20d2c",
+        "1643949700215-e61cdca053f7",
+        "1649083048239-c05841380582",
+        "1677959098115-1aafeb9313c0"
+      ]
+    },
+    {
+      "id": "D2",
+      "owner": "owner6",
+      "type": "flat",
+      "area": "dokkhin",
+      "title": "দক্ষিণ পাড়ায় শিক্ষার্থীদের জন্য ২ শোবার ঘর",
+      "description": "পাঁচতলা, লিফট নেই। ছাদে বসার জায়গা।",
+      "rules": "শিক্ষার্থীদের জন্য। ধূমপান নিষেধ।",
+      "rent": 7500,
+      "service": 500,
+      "advance": 15000,
+      "others": [],
+      "beds": 2,
+      "baths": 1,
+      "sqft": 620,
+      "floor": 5,
+      "furnish": "unfurnished",
+      "occ": "students",
+      "availInDays": 0,
+      "amenities": [
+        "roof"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 12,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 35,
+      "reason": null,
+      "views": 115,
+      "reveals": 13,
+      "photos": [
+        "1789214069385-75544c74404d",
+        "1649083048239-c05841380582",
+        "1645237455598-e8f02d706a4e",
+        "1633536704679-de310869515b"
+      ]
+    },
+    {
+      "id": "D3",
+      "owner": "owner10",
+      "type": "flat",
+      "area": "dokkhin",
+      "title": "দক্ষিণ পাড়ায় পার্কিংসহ ২ শোবার ঘরের ফ্ল্যাট",
+      "description": "মোটরসাইকেল রাখার জায়গা আছে। দুই দিকে জানালা।",
+      "rules": null,
+      "rent": 10500,
+      "service": 1200,
+      "advance": 21000,
+      "others": [
+        {
+          "label": "গ্যাস বিল (ডাবল চুলা)",
+          "amount": 1080,
+          "period": "monthly"
+        },
+        {
+          "label": "চাবির জামানত (ফেরতযোগ্য)",
+          "amount": 1000,
+          "period": "one_time"
+        }
+      ],
+      "beds": 2,
+      "baths": 1,
+      "sqft": 760,
+      "floor": 2,
+      "furnish": "semi",
+      "occ": "any",
+      "availInDays": 0,
+      "amenities": [
+        "parking",
+        "gas",
+        "balcony"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 3,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 15,
+      "reason": null,
+      "views": 97,
+      "reveals": 11,
+      "photos": [
+        "1765396576098-6a44270700d1",
+        "1651766231012-8d8a4b2e20dc",
+        "1787390629829-abb32b3025c5",
+        "1691958050227-85762ee1cea5",
+        "1708223578831-5c737a3074ab",
+        "1643949700215-e61cdca053f7"
+      ],
+      "fullAddress": "বাড়ি ১২, রোড ৩, দক্ষিণ পাড়া, ধামরাই"
+    },
+    {
+      "id": "Z1",
+      "owner": "owner",
+      "type": "flat",
+      "area": "bazar",
+      "title": "ধামরাই বাজারে ২ শোবার ঘরের ফ্ল্যাট",
+      "description": "বাজার ও বাসস্ট্যান্ড হাঁটা দূরত্বে। দক্ষিণমুখী বারান্দা, দিনে ভালো আলো আসে।",
+      "rules": "পরিবারকে অগ্রাধিকার দেওয়া হবে। রাত ১১টার পর মূল গেট বন্ধ থাকে।",
+      "rent": 12000,
+      "service": 1000,
+      "advance": 24000,
+      "others": [
+        {
+          "label": "গ্যাস বিল (ডাবল চুলা)",
+          "amount": 1080,
+          "period": "monthly"
+        }
+      ],
+      "beds": 2,
+      "baths": 2,
+      "sqft": 850,
+      "floor": 3,
+      "furnish": "semi",
+      "occ": "family",
+      "availInDays": 0,
+      "amenities": [
+        "gas",
+        "balcony",
+        "roof"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 28,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 58,
+      "reason": null,
+      "views": 312,
+      "reveals": 24,
+      "photos": [
+        "1566581068035-4fc53781ae9d",
+        "1651766231012-8d8a4b2e20dc",
+        "1645237455598-e8f02d706a4e",
+        "1691958050227-85762ee1cea5",
+        "1708223578831-5c737a3074ab",
+        "1643949700215-e61cdca053f7"
+      ],
+      "fullAddress": "হোল্ডিং ৪৫/২, বাজার রোড, ধামরাই"
+    },
+    {
+      "id": "Z2",
+      "owner": "owner5",
+      "type": "flat",
+      "area": "bazar",
+      "title": "ধামরাই বাজারে আসবাবসহ স্টুডিও",
+      "description": "খাট, টেবিল ও আলমারি আছে। কলেজের কাছে।",
+      "rules": null,
+      "rent": 9000,
+      "service": 800,
+      "advance": 18000,
+      "others": [],
+      "beds": 0,
+      "baths": 1,
+      "sqft": 420,
+      "floor": 4,
+      "furnish": "furnished",
+      "occ": "students",
+      "availInDays": 0,
+      "amenities": [
+        "lift",
+        "gas",
+        "security"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 10,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 25,
+      "reason": null,
+      "views": 201,
+      "reveals": 31,
+      "photos": [
+        "1667238993645-49573997d48f",
+        "1649083048819-3fcd37423f45",
+        "1787390629829-abb32b3025c5",
+        "1529423374493-8b2f78fd2437",
+        "1711699487800-fcf3a0af45ba"
+      ]
+    },
+    {
+      "id": "Z3",
+      "owner": "owner7",
+      "type": "flat",
+      "area": "bazar",
+      "title": "ধামরাই বাজারে দোকানের ওপরে ১ শোবার ঘর",
+      "description": "বাজারের ঠিক ওপরে, দিনে কিছুটা কোলাহল। সব কিছু হাতের কাছে।",
+      "rules": null,
+      "rent": 6500,
+      "service": 300,
+      "advance": 13000,
+      "others": [],
+      "beds": 1,
+      "baths": 1,
+      "sqft": 450,
+      "floor": 2,
+      "furnish": "unfurnished",
+      "occ": "any",
+      "availInDays": 0,
+      "amenities": [
+        "gas"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 6,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 22,
+      "reason": null,
+      "views": 84,
+      "reveals": 7,
+      "photos": [
+        "1749057505319-6e6c7f2789af",
+        "1662352137320-d1ac1494c8f1",
+        "1633604712918-6ab1173d0ecd",
+        "1725483990150-61a9fbd746d1"
+      ]
+    },
+    {
+      "id": "I1",
+      "owner": "owner3",
+      "type": "flat",
+      "area": "islampur",
+      "title": "ইসলামপুরে ৩ শোবার ঘরের নতুন ফ্ল্যাট",
+      "description": "নতুন ভবন, প্রশস্ত রান্নাঘর। স্কুল ও মাদ্রাসা কাছেই।",
+      "rules": null,
+      "rent": 14000,
+      "service": 1000,
+      "advance": 28000,
+      "others": [],
+      "beds": 3,
+      "baths": 2,
+      "sqft": 1100,
+      "floor": 2,
+      "furnish": "unfurnished",
+      "occ": "family",
+      "availInDays": 14,
+      "amenities": [
+        "parking",
+        "gas",
+        "balcony",
+        "security"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 2,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 2,
+      "reason": null,
+      "views": 39,
+      "reveals": 5,
+      "photos": [
+        "1789214069385-75544c74404d",
+        "1633605016186-a8a919b14f5d",
+        "1787390629829-abb32b3025c5",
+        "1529423374493-8b2f78fd2437",
+        "1711699487800-fcf3a0af45ba",
+        "1552321554-5fefe8c9ef14",
+        "1649083048239-c05841380582",
+        "1677959098115-1aafeb9313c0"
+      ]
+    },
+    {
+      "id": "I2",
+      "owner": "owner8",
+      "type": "house",
+      "area": "islampur",
+      "title": "ইসলামপুরে আধাপাকা বাড়ি, ৩টি ঘর",
+      "description": "পাকা মেঝে, টিনের ছাদ। সামনে খোলা জায়গা।",
+      "rules": null,
+      "rent": 8000,
+      "service": 0,
+      "advance": 16000,
+      "others": [
+        {
+          "label": "বিদ্যুৎ বিল",
+          "amount": null,
+          "period": "monthly"
+        }
+      ],
+      "beds": 3,
+      "baths": 1,
+      "sqft": null,
+      "floor": 0,
+      "furnish": "unfurnished",
+      "occ": "family",
+      "availInDays": 0,
+      "amenities": [
+        "yard"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 8,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 20,
+      "reason": null,
+      "views": 66,
+      "reveals": 9,
+      "photos": [
+        "1767154966831-9607c8322a5a",
+        "1649083048239-c05841380582",
+        "1725483990150-61a9fbd746d1",
+        "1648682149870-071f63d20d2c",
+        "1643949700215-e61cdca053f7"
+      ]
+    },
+    {
+      "id": "I3",
+      "owner": "owner9",
+      "type": "flat",
+      "area": "islampur",
+      "title": "ইসলামপুরে ২ শোবার ঘরের ফ্ল্যাট",
+      "description": "অগ্রিমের পরিমাণ আলোচনা সাপেক্ষে।",
+      "rules": null,
+      "rent": 8500,
+      "service": 500,
+      "advance": null,
+      "others": [],
+      "beds": 2,
+      "baths": 1,
+      "sqft": 650,
+      "floor": 3,
+      "furnish": "unfurnished",
+      "occ": "any",
+      "availInDays": 0,
+      "amenities": [
+        "gas"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 14,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 45,
+      "reason": null,
+      "views": 102,
+      "reveals": 10,
+      "photos": [
+        "1566581068035-4fc53781ae9d",
+        "1651766231012-8d8a4b2e20dc",
+        "1645237455598-e8f02d706a4e"
+      ]
+    },
+    {
+      "id": "M1",
+      "owner": "owner",
+      "type": "flat",
+      "area": "barat",
+      "title": "বরাত নগরে ২ শোবার ঘরের ফ্ল্যাট",
+      "description": null,
+      "rules": null,
+      "rent": 7500,
+      "service": 0,
+      "advance": null,
+      "others": [],
+      "beds": 2,
+      "baths": 1,
+      "sqft": null,
+      "floor": 1,
+      "furnish": "unfurnished",
+      "occ": "any",
+      "availInDays": 0,
+      "amenities": [],
+      "status": "draft",
+      "confirmedDaysAgo": null,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 2,
+      "reason": null,
+      "views": 0,
+      "reveals": 0,
+      "photos": [],
+      "step": 2
+    },
+    {
+      "id": "M2",
+      "owner": "owner",
+      "type": "flat",
+      "area": "islampur",
+      "title": "ইসলামপুরে ১ শোবার ঘরের ফ্ল্যাট",
+      "description": "ছোট পরিবার বা দম্পতির জন্য।",
+      "rules": null,
+      "rent": 6500,
+      "service": 500,
+      "advance": 13000,
+      "others": [],
+      "beds": 1,
+      "baths": 1,
+      "sqft": 450,
+      "floor": 2,
+      "furnish": "unfurnished",
+      "occ": "any",
+      "availInDays": 0,
+      "amenities": [
+        "gas"
+      ],
+      "status": "published",
+      "confirmedDaysAgo": 33,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 70,
+      "reason": null,
+      "views": 180,
+      "reveals": 15,
+      "photos": [
+        "1661111779164-2b43524cda54",
+        "1633605016186-a8a919b14f5d",
+        "1645237455598-e8f02d706a4e",
+        "1725483990150-61a9fbd746d1"
+      ]
+    },
+    {
+      "id": "M3",
+      "owner": "owner",
+      "type": "flat",
+      "area": "amin",
+      "title": "আমিন মডেল টাউনে ৩ শোবার ঘরের ফ্ল্যাট",
+      "description": "লিফট ও জেনারেটর আছে।",
+      "rules": null,
+      "rent": 16000,
+      "service": 2000,
+      "advance": 32000,
+      "others": [],
+      "beds": 3,
+      "baths": 2,
+      "sqft": 1200,
+      "floor": 4,
+      "furnish": "unfurnished",
+      "occ": "family",
+      "availInDays": 7,
+      "amenities": [
+        "lift",
+        "generator"
+      ],
+      "status": "changes",
+      "confirmedDaysAgo": null,
+      "submittedHoursAgo": 30,
+      "createdDaysAgo": null,
+      "reason": "রান্নাঘরের একটি ছবি যোগ করুন এবং সার্ভিস চার্জে কী কী আছে বিবরণে লিখুন।",
+      "views": 0,
+      "reveals": 0,
+      "photos": [
+        "1789214069385-75544c74404d",
+        "1649083048239-c05841380582",
+        "1787390629829-abb32b3025c5"
+      ]
+    },
+    {
+      "id": "M4",
+      "owner": "owner",
+      "type": "house",
+      "area": "barat",
+      "title": "বরাত নগরে আধাপাকা বাড়ি, ৩টি ঘর",
+      "description": "পাকা মেঝে, টিনের ছাদ। নিজস্ব টয়লেট।",
+      "rules": null,
+      "rent": 8500,
+      "service": 0,
+      "advance": 17000,
+      "others": [],
+      "beds": 3,
+      "baths": 1,
+      "sqft": null,
+      "floor": 0,
+      "furnish": "unfurnished",
+      "occ": "family",
+      "availInDays": 0,
+      "amenities": [
+        "yard"
+      ],
+      "status": "pending",
+      "confirmedDaysAgo": null,
+      "submittedHoursAgo": 5,
+      "createdDaysAgo": null,
+      "reason": null,
+      "views": 0,
+      "reveals": 0,
+      "photos": [
+        "1646037884775-7258456e8348",
+        "1651766231012-8d8a4b2e20dc",
+        "1691958050227-85762ee1cea5",
+        "1755921739344-d94ea3d9ed8b",
+        "1643949700215-e61cdca053f7"
+      ]
+    },
+    {
+      "id": "M5",
+      "owner": "owner",
+      "type": "flat",
+      "area": "dokkhin",
+      "title": "দক্ষিণ পাড়ায় ২ শোবার ঘরের ফ্ল্যাট",
+      "description": null,
+      "rules": null,
+      "rent": 9500,
+      "service": 800,
+      "advance": 19000,
+      "others": [],
+      "beds": 2,
+      "baths": 1,
+      "sqft": 700,
+      "floor": 1,
+      "furnish": "unfurnished",
+      "occ": "family",
+      "availInDays": 0,
+      "amenities": [],
+      "status": "rented",
+      "confirmedDaysAgo": 15,
+      "submittedHoursAgo": null,
+      "createdDaysAgo": 50,
+      "reason": null,
+      "views": 260,
+      "reveals": 22,
+      "photos": [
+        "1566581068035-4fc53781ae9d",
+        "1649083048819-3fcd37423f45",
+        "1645237455598-e8f02d706a4e"
+      ]
+    },
+    {
+      "id": "P1",
+      "owner": "owner6",
+      "type": "flat",
+      "area": "bazar",
+      "title": "ধামরাই বাজারের পাশে ২ শোবার ঘরের ফ্ল্যাট",
+      "description": "বাজারের পাশে, দোতলা বাড়ির নিচতলা।",
+      "rules": null,
+      "rent": 9000,
+      "service": 700,
+      "advance": 18000,
+      "others": [],
+      "beds": 2,
+      "baths": 1,
+      "sqft": 700,
+      "floor": 1,
+      "furnish": "unfurnished",
+      "occ": "any",
+      "availInDays": 5,
+      "amenities": [
+        "gas"
+      ],
+      "status": "pending",
+      "confirmedDaysAgo": null,
+      "submittedHoursAgo": 30,
+      "createdDaysAgo": null,
+      "reason": null,
+      "views": 0,
+      "reveals": 0,
+      "photos": [
+        "1789214069385-75544c74404d",
+        "1651766231012-8d8a4b2e20dc",
+        "1633604712918-6ab1173d0ecd",
+        "1725483990150-61a9fbd746d1"
+      ]
+    },
+    {
+      "id": "P2",
+      "owner": "owner10",
+      "type": "flat",
+      "area": "amin",
+      "title": "আমিন মডেল টাউনে ১ শোবার ঘর",
+      "description": "অল্প ভাড়া।",
+      "rules": null,
+      "rent": 7000,
+      "service": 500,
+      "advance": null,
+      "others": [],
+      "beds": 1,
+      "baths": 1,
+      "sqft": null,
+      "floor": 1,
+      "furnish": "unfurnished",
+      "occ": "bachelor",
+      "availInDays": 0,
+      "amenities": [],
+      "status": "pending",
+      "confirmedDaysAgo": null,
+      "submittedHoursAgo": 3,
+      "createdDaysAgo": null,
+      "reason": null,
+      "views": 0,
+      "reveals": 0,
+      "photos": [
+        "1765396576098-6a44270700d1",
+        "1649083048819-3fcd37423f45",
+        "1645237455598-e8f02d706a4e"
+      ]
+    }
+  ],
+  "reports": [
+    {
+      "id": "R1",
+      "listing": "Z2",
+      "reason": "suspicious",
+      "hoursAgo": 30,
+      "details": "ফোনে বলছে বাসা দেখার আগে বিকাশে টোকেন মানি পাঠাতে।"
+    },
+    {
+      "id": "R2",
+      "listing": "I2",
+      "reason": "unavailable",
+      "hoursAgo": 4,
+      "details": "ফোন করে জানলাম বাসা ভাড়া হয়ে গেছে।"
+    }
+  ]
+}

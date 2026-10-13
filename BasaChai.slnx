@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BasaChai.Api/BasaChai.Api.csproj" />
+    <Project Path="src/BasaChai.Application/BasaChai.Application.csproj" />
+    <Project Path="src/BasaChai.Domain/BasaChai.Domain.csproj" />
+    <Project Path="src/BasaChai.Infrastructure/BasaChai.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BasaChai.Api.Tests/BasaChai.Api.Tests.csproj" />
+    <Project Path="tests/BasaChai.Domain.Tests/BasaChai.Domain.Tests.csproj" />
+  </Folder>
+</Solution>

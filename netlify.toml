@@ -1,0 +1,10 @@
+# The web app on Netlify (architecture spec). Netlify's Next.js runtime is added automatically.
+# Set NEXT_PUBLIC_API_URL, API_URL, NEXT_PUBLIC_SITE_URL and NEXT_PUBLIC_CLOUDINARY_CLOUD in the site settings.
+[build]
+  base = "web"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"

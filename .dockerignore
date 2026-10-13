@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/node_modules/
+web/
+tests/
+.git/
+.vs/
+.dev.env
+**/*.user
+**/TestResults/
+deploy/env/*.env
+deploy/local-config/
