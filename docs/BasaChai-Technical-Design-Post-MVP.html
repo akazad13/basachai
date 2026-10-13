@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BasaChai Post-MVP Design</title>
+<meta name="description" content="Post-MVP technical design for BasaChai: background jobs, push notifications and managed cloud services, built on the MVP.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Bengali:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbfaf7;
+    --surface: #ffffff;
+    --ink: #1c1d1f;
+    --muted: #5d6066;
+    --line: #d9d6cc;
+    --rule: #ebe8df;
+    --accent: #1f6fd1;
+    --accent-tint: rgba(31, 111, 209, 0.10);
+    --warn: #a2620a;
+    --warn-tint: rgba(162, 98, 10, 0.12);
+    --code-bg: #f1efe8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17181a;
+      --surface: #1f2023;
+      --ink: #ecebe7;
+      --muted: #a3a5aa;
+      --line: #45464b;
+      --rule: #2f3034;
+      --accent: #6ea8f0;
+      --accent-tint: rgba(110, 168, 240, 0.14);
+      --warn: #e0a54a;
+      --warn-tint: rgba(224, 165, 74, 0.14);
+      --code-bg: #2a2b2f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17181a;
+    --surface: #1f2023;
+    --ink: #ecebe7;
+    --muted: #a3a5aa;
+    --line: #45464b;
+    --rule: #2f3034;
+    --accent: #6ea8f0;
+    --accent-tint: rgba(110, 168, 240, 0.14);
+    --warn: #e0a54a;
+    --warn-tint: rgba(224, 165, 74, 0.14);
+    --code-bg: #2a2b2f;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.6 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .layout { max-width: 1120px; margin: 0 auto; padding: 0 16px; display: grid; grid-template-columns: 1fr; gap: 48px; }
+  @media (min-width: 1000px) { .layout { grid-template-columns: 220px minmax(0, 1fr); padding: 0 32px; } }
+  nav.toc { display: none; }
+  @media (min-width: 1000px) {
+    nav.toc { display: block; position: sticky; top: 32px; align-self: start; max-height: calc(100vh - 64px); overflow-y: auto; padding-top: 56px; font-size: 13.5px; }
+    nav.toc p { margin: 0 0 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-size: 11.5px; }
+    nav.toc ol { list-style: none; margin: 0; padding: 0; }
+    nav.toc a { display: block; padding: 4px 0; color: var(--muted); text-decoration: none; }
+    nav.toc a:hover { color: var(--ink); }
+  }
+  main { min-width: 0; max-width: 780px; padding: 48px 0 96px; }
+
+  header.doc-head { border-bottom: 1px solid var(--line); padding-bottom: 28px; margin-bottom: 8px; }
+  .bn { font-family: "Noto Sans Bengali", sans-serif; font-weight: 700; color: var(--accent); font-size: 18px; margin: 0 0 6px; }
+  h1 { font-size: 40px; line-height: 1.15; margin: 0 0 10px; letter-spacing: -0.02em; }
+  .tagline { font-size: 18px; color: var(--muted); margin: 0 0 18px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--muted); }
+  .meta span { border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; background: var(--surface); }
+
+  section { padding-top: 40px; scroll-margin-top: 16px; }
+  h2 { font-size: 24px; line-height: 1.25; margin: 0 0 12px; letter-spacing: -0.01em; }
+  h2 .num { color: var(--muted); font-weight: 500; margin-right: 8px; }
+  h3 { font-size: 17px; margin: 28px 0 8px; }
+  p { margin: 0 0 14px; }
+  .lead { font-size: 17px; }
+  ul, ol { margin: 0 0 14px; padding-left: 22px; }
+  li { margin: 3px 0; }
+  code { font-family: "JetBrains Mono", ui-monospace, Consolas, monospace; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 0.86em; }
+  pre { background: var(--code-bg); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 0 0 18px; font-size: 13px; line-height: 1.55; }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  strong { font-weight: 600; }
+
+  .table-wrap { overflow-x: auto; margin: 0 0 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--rule); }
+  th { font-weight: 600; font-size: 12.5px; color: var(--muted); background: var(--bg); white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.nw { white-space: nowrap; }
+  td code { white-space: nowrap; }
+
+  .verb { display: inline-block; font: 600 11px/1 "JetBrains Mono", monospace; padding: 4px 6px; border-radius: 4px; background: var(--accent-tint); color: var(--accent); min-width: 48px; text-align: center; }
+
+  .callout { border-left: 3px solid var(--accent); background: var(--accent-tint); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 0 0 16px; }
+  .callout.warn { border-color: var(--warn); background: var(--warn-tint); }
+  .callout p:last-child { margin: 0; }
+
+  figure { margin: 8px 0 18px; }
+  figure .frame { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 8px; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+  svg text { font-family: "Inter", system-ui, sans-serif; }
+  svg .box { fill: none; stroke: var(--line); stroke-width: 1.25; }
+  svg .box.hi { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 2; }
+  svg .box.ext { stroke-dasharray: 5 4; }
+  svg .zone { fill: var(--bg); stroke: var(--line); stroke-width: 1; }
+  svg .wire { fill: none; stroke: var(--muted); stroke-width: 1.25; opacity: .75; }
+  svg .head { fill: var(--muted); }
+  svg .tt { fill: var(--ink); font-size: 15px; font-weight: 600; }
+  svg .tb { fill: var(--ink); font-size: 13px; font-weight: 600; }
+  svg .q { fill: var(--muted); font-size: 11.5px; }
+  svg .mid { text-anchor: middle; }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  @media (max-width: 600px) { h1 { font-size: 32px; } main { padding-top: 32px; } th, td { padding: 8px 10px; } }
+  @media print { nav.toc { display: none; } .layout { display: block; } body { background: #fff; } }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="toc" aria-label="Contents">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#summary">1. Summary and stack</a></li>
+      <li><a href="#architecture">2. Architecture</a></li>
+      <li><a href="#code">3. Code structure</a></li>
+      <li><a href="#data">4. Data model</a></li>
+      <li><a href="#states">5. Listing state machine</a></li>
+      <li><a href="#api">6. API</a></li>
+      <li><a href="#search">7. Search</a></li>
+      <li><a href="#auth">8. Auth and roles</a></li>
+      <li><a href="#media">9. Photo pipeline</a></li>
+      <li><a href="#contact">10. Contact and analytics</a></li>
+      <li><a href="#jobs">11. Background jobs</a></li>
+      <li><a href="#security">12. Security and privacy</a></li>
+      <li><a href="#l10n">13. Localization</a></li>
+      <li><a href="#seo">14. SEO and web</a></li>
+      <li><a href="#infra">15. Azure infrastructure</a></li>
+      <li><a href="#ops">16. Reliability and observability</a></li>
+      <li><a href="#testing">17. Testing</a></li>
+      <li><a href="#cicd">18. CI/CD</a></li>
+      <li><a href="#trace">19. Requirement traceability</a></li>
+      <li><a href="#open">20. Open questions</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="doc-head">
+      <p class="bn" lang="bn">বাসা চাই</p>
+      <h1>BasaChai Technical Design: Post-MVP</h1>
+      <p class="tagline">The next iteration after the MVP: background jobs, push notifications and managed cloud services.</p>
+      <div class="meta">
+        <span>Version 2.0 (post-MVP)</span>
+        <span>13 October 2026</span>
+        <span>Based on PRD v1.4</span>
+        <span>No SMS</span>
+        <span>Scope: after the Dhamrai MVP</span>
+      </div>
+    </header>
+
+    <div class="callout warn" style="margin-top:24px"><p><strong>This is the post-MVP iteration, not the MVP build.</strong> The MVP runs on one low-cost Linux VPS with no background jobs and no push notifications; see <a href="BasaChai-Technical-Design-MVP.html">BasaChai Technical Design: MVP</a>. Adopt the parts of this design one at a time when the MVP hits the triggers in its "Path to post-MVP" section.</p>
+    <p><strong>Hosting.</strong> The MVP will not be hosted on Azure. The Azure services named here describe one managed target for later scale. Each has an equivalent from other providers or self-hosted (managed PostgreSQL, object storage, Redis, a CDN), so choose the provider when you actually move.</p></div>
+
+    <!-- 1 -->
+    <section id="summary">
+      <h2><span class="num">1</span>Summary and stack</h2>
+      <p class="lead">After the MVP, BasaChai becomes a server-rendered Next.js site in front of a horizontally scalable .NET 10 API and a job worker, backed by managed PostgreSQL, Redis and object storage behind a global edge.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Layer</th><th>Choice</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Web</td><td>Next.js (App Router), TypeScript, server-side rendering</td><td>Indexable property pages and fast first load on mobile</td></tr>
+          <tr><td>API</td><td>ASP.NET Core on .NET 10 (LTS)</td><td>Team stack; supported until November 2028</td></tr>
+          <tr><td>Data access</td><td>EF Core with Npgsql</td><td>Migrations, LINQ, raw SQL where search needs it</td></tr>
+          <tr><td>Database</td><td>Azure Database for PostgreSQL Flexible Server (PostgreSQL 17)</td><td><code>pg_trgm</code> and <code>ltree</code> for search and location trees; PostGIS later for maps</td></tr>
+          <tr><td>Jobs</td><td>Hangfire with PostgreSQL storage</td><td>Expiry, reminders, push sending, retries with a dashboard</td></tr>
+          <tr><td>Notifications</td><td>In-app notifications + Web Push (VAPID)</td><td>No SMS or email; no per-message cost</td></tr>
+          <tr><td>Files</td><td>Cloudinary paid plan (continuing from the MVP), or Azure Blob Storage + Defender for Storage malware scanning</td><td>Choose by cost when the MVP outgrows Cloudinary's free plan (section 9)</td></tr>
+          <tr><td>Cache / limits</td><td>Azure Cache for Redis</td><td>Rate limits shared across instances</td></tr>
+          <tr><td>Edge</td><td>Azure Front Door Premium with WAF</td><td>CDN, TLS, path routing, bot protection</td></tr>
+          <tr><td>Hosting</td><td>Azure Container Apps</td><td>Scale-to-demand containers without running Kubernetes</td></tr>
+          <tr><td>Observability</td><td>OpenTelemetry to Application Insights</td><td>Traces, logs and metrics in one place</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout"><p><strong>.NET version.</strong> .NET 10 (LTS) is confirmed for both the MVP and this iteration; it is supported until November 2028.</p></div>
+      <div class="callout"><p><strong>No SMS.</strong> Neither the MVP nor this iteration sends SMS. Phone verification stays deferred, password resets stay admin-assisted, and this iteration adds an in-app inbox and browser push for owner reminders.</p></div>
+      <p><strong>Library constraints.</strong> Moq and AutoMapper are banned. Tests use NSubstitute or hand-written fakes, and mapping is done with explicit extension methods (<code>ToDto()</code>, <code>ToEntity()</code>).</p>
+    </section>
+
+    <!-- 2 -->
+    <section id="architecture">
+      <h2><span class="num">2</span>Architecture</h2>
+      <p class="lead">Every request enters through Front Door: pages go to Next.js, <code>/api</code> goes to the .NET API, and photos are served from Blob Storage through the CDN.</p>
+      <figure>
+        <div class="frame">
+          <svg viewBox="0 0 760 512" role="img" aria-label="One origin: Front Door routes pages to Next.js and /api to .NET">
+            <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="head" d="M0 0L10 5L0 10z"/></marker></defs>
+            <text class="tt" x="24" y="36">One origin: Front Door routes pages to Next.js and /api to .NET</text>
+
+            <rect class="box" x="270" y="60" width="220" height="40" rx="8"/>
+            <text class="tb mid" x="380" y="84">Browser (mobile, desktop)</text>
+
+            <rect class="box hi" x="24" y="128" width="712" height="48" rx="8"/>
+            <text class="tb mid" x="380" y="148">Azure Front Door (WAF, CDN, TLS)</text>
+            <text class="q mid" x="380" y="166">/ → web · /api → api · /media → Blob Storage</text>
+
+            <rect class="zone" x="24" y="212" width="536" height="118" rx="10"/>
+            <text class="q" x="40" y="232">Azure Container Apps</text>
+            <rect class="box" x="40" y="244" width="160" height="70" rx="8"/>
+            <text class="tb mid" x="120" y="274">Next.js web</text><text class="q mid" x="120" y="294">SSR pages, i18n</text>
+            <rect class="box" x="216" y="244" width="160" height="70" rx="8"/>
+            <text class="tb mid" x="296" y="274">.NET API</text><text class="q mid" x="296" y="294">REST v1, auth, rules</text>
+            <rect class="box" x="392" y="244" width="152" height="70" rx="8"/>
+            <text class="tb mid" x="468" y="274">Worker</text><text class="q mid" x="468" y="294">Hangfire jobs, push</text>
+
+            <rect class="box ext" x="592" y="251" width="144" height="56" rx="8"/>
+            <text class="tb mid" x="664" y="275">Push services</text><text class="q mid" x="664" y="293">browser vendors</text>
+
+            <rect class="box" x="24" y="372" width="152" height="56" rx="8"/>
+            <text class="tb mid" x="100" y="396">PostgreSQL</text><text class="q mid" x="100" y="414">Flexible Server</text>
+            <rect class="box" x="192" y="372" width="152" height="56" rx="8"/>
+            <text class="tb mid" x="268" y="396">Redis</text><text class="q mid" x="268" y="414">rate limits, cache</text>
+            <rect class="box" x="360" y="372" width="152" height="56" rx="8"/>
+            <text class="tb mid" x="436" y="396">Key Vault</text><text class="q mid" x="436" y="414">secrets, keys</text>
+            <rect class="box" x="528" y="372" width="208" height="56" rx="8"/>
+            <text class="tb mid" x="632" y="396">Blob Storage</text><text class="q mid" x="632" y="414">photos, malware scan</text>
+
+            <rect class="zone" x="24" y="452" width="712" height="36" rx="8"/>
+            <text class="q mid" x="380" y="474">Application Insights + Log Analytics: traces, logs and metrics from every service</text>
+
+            <g class="wire">
+              <path d="M380 100V128" marker-end="url(#arr)"/>
+              <path d="M120 176V244" marker-end="url(#arr)"/>
+              <path d="M296 176V244" marker-end="url(#arr)"/>
+              <path d="M200 279H216" marker-end="url(#arr)"/>
+              <path d="M544 279H592" marker-end="url(#arr)"/>
+              <path d="M296 314V350"/>
+              <path d="M468 314V350"/>
+              <path d="M100 350H632"/>
+              <path d="M100 350V372" marker-end="url(#arr)"/>
+              <path d="M268 350V372" marker-end="url(#arr)"/>
+              <path d="M436 350V372" marker-end="url(#arr)"/>
+              <path d="M632 350V372" marker-end="url(#arr)"/>
+            </g>
+          </svg>
+        </div>
+        <figcaption>Runtime architecture. The API and worker share the data stores; all push notifications go through the worker's queue so retries and expired subscriptions are handled in one place. There is no SMS gateway.</figcaption>
+      </figure>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Component</th><th>Responsibility</th></tr></thead>
+        <tbody>
+          <tr><td>Next.js web</td><td>Public pages (home, search, property), owner dashboard, admin dashboard. Renders public pages on the server; calls the API over the internal network.</td></tr>
+          <tr><td>.NET API</td><td>All business rules: validation, listing state machine, auth, rate limits, moderation, audit. The only component that writes to PostgreSQL, apart from the worker.</td></tr>
+          <tr><td>Worker</td><td>Hangfire server: listing expiry, reconfirmation reminders, push sending, photo processing, analytics rollups.</td></tr>
+          <tr><td>Front Door</td><td>TLS termination, WAF and bot rules, CDN caching for pages and photos, path-based routing so cookies stay same-origin.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 3 -->
+    <section id="code">
+      <h2><span class="num">3</span>Code structure</h2>
+      <p class="lead">One .NET solution with four layers and a worker, plus a separate Next.js app, all in one repository.</p>
+<pre><code>basachai/
+  src/
+    BasaChai.Domain/          entities, enums, listing state machine, domain errors
+    BasaChai.Application/     use cases, FluentValidation validators, DTOs, explicit mappers
+    BasaChai.Infrastructure/  EF Core DbContext + migrations, Blob, Redis, Web Push, Key Vault
+    BasaChai.Api/             ASP.NET Core endpoints, auth, rate-limit policies, ProblemDetails
+    BasaChai.Worker/          Hangfire server and job classes
+  tests/
+    BasaChai.Domain.Tests/        state machine and pricing rules (xUnit)
+    BasaChai.Application.Tests/   use cases with NSubstitute or fakes
+    BasaChai.Api.Tests/           WebApplicationFactory + Testcontainers PostgreSQL
+  web/                        Next.js app (app router, next-intl, Playwright E2E)
+  infra/                      Bicep modules per environment
+  pipelines/                  Azure Pipelines YAML</code></pre>
+      <ul>
+        <li>Domain has no dependencies. The state machine lives here so the API and worker enforce the same rules.</li>
+        <li>Errors return RFC 9457 <code>ProblemDetails</code> with a stable <code>code</code> field the web app maps to Bangla messages.</li>
+        <li>Concurrency on listings uses PostgreSQL <code>xmin</code> as an EF Core row version; conflicting edits return 409.</li>
+      </ul>
+    </section>
+
+    <!-- 4 -->
+    <section id="data">
+      <h2><span class="num">4</span>Data model</h2>
+      <p class="lead">The tables below cover the PRD's entities plus audit, analytics and notifications; money is stored as whole taka and times as UTC.</p>
+      <h3>Core tables</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Table</th><th>Key columns</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>users</code></td><td><code>id</code>, <code>phone_e164</code> (unique), <code>phone_verified_at</code>, <code>display_name</code>, <code>password_hash</code>, <code>status</code>, <code>preferred_locale</code></td><td>ASP.NET Core Identity tables, renamed to snake_case. Status: active, restricted, suspended. <code>phone_verified_at</code> stays null at launch and is kept for future verification.</td></tr>
+          <tr><td><code>password_reset_tokens</code></td><td><code>user_id</code>, <code>token_hash</code>, <code>issued_by</code>, <code>expires_at</code>, <code>consumed_at</code></td><td>Issued by an admin after support checks identity; single use, 24 hours, stored hashed.</td></tr>
+          <tr><td><code>notifications</code></td><td><code>id</code>, <code>user_id</code>, <code>kind</code>, <code>listing_id</code>, <code>payload</code> (jsonb), <code>created_at</code>, <code>read_at</code></td><td>In-app inbox. Kind: reconfirm_due, listing_expired, moderation_result.</td></tr>
+          <tr><td><code>push_subscriptions</code></td><td><code>id</code>, <code>user_id</code>, <code>endpoint</code>, <code>p256dh</code>, <code>auth</code>, <code>created_at</code>, <code>last_success_at</code></td><td>One row per browser or device; removed when the push service returns 404 or 410.</td></tr>
+          <tr><td><code>locations</code></td><td><code>id</code>, <code>parent_id</code>, <code>path</code> (ltree), <code>kind</code>, <code>name_bn</code>, <code>name_en</code>, <code>slug</code>, <code>is_active</code></td><td>Division → district → upazila → area. Dhamrai areas active at launch.</td></tr>
+          <tr><td><code>location_aliases</code></td><td><code>location_id</code>, <code>alias</code>, <code>normalized</code></td><td>Bangla and English spellings; trigram index on <code>normalized</code>.</td></tr>
+          <tr><td><code>property_listings</code></td><td><code>id</code>, <code>short_id</code>, <code>owner_id</code>, <code>purpose</code>, <code>property_type_id</code>, <code>location_id</code>, <code>title</code>, <code>description</code>, <code>monthly_rent_bdt</code>, <code>bedrooms</code>, <code>bathrooms</code>, <code>floor_area_sqft</code>, <code>floor_number</code>, <code>furnishing</code>, <code>occupancy_preference</code>, <code>available_from</code>, <code>full_address_enc</code>, <code>advertiser_type</code>, <code>status</code>, <code>is_hidden</code>, <code>last_confirmed_at</code>, <code>expires_at</code>, <code>published_at</code>, <code>sale_details</code> (jsonb), <code>search_vector</code></td><td><code>purpose</code> is rent or sale (FR-22). <code>bedrooms</code> 0 means studio. <code>available_from</code> null means now. <code>is_hidden</code> is the moderator hide flag.</td></tr>
+          <tr><td><code>listing_charges</code></td><td><code>listing_id</code>, <code>kind</code>, <code>label</code>, <code>amount_bdt</code>, <code>period</code>, <code>not_specified</code></td><td>Kind: advance, service_charge, utility, other_recurring, one_time. Keeps every cost a separate line (pricing rule).</td></tr>
+          <tr><td><code>listing_photos</code></td><td><code>id</code>, <code>listing_id</code>, <code>blob_key</code>, <code>width</code>, <code>height</code>, <code>sort_order</code>, <code>scan_status</code></td><td>Scan status: pending, clean, rejected.</td></tr>
+          <tr><td><code>property_types</code>, <code>amenities</code>, <code>listing_amenities</code></td><td><code>id</code>, <code>name_bn</code>, <code>name_en</code>, <code>is_active</code></td><td>Admin-configurable lists.</td></tr>
+          <tr><td><code>saved_listings</code></td><td><code>user_id</code>, <code>listing_id</code>, <code>created_at</code></td><td>Composite primary key.</td></tr>
+          <tr><td><code>listing_reports</code></td><td><code>id</code>, <code>listing_id</code>, <code>reporter_id</code> (nullable), <code>reason</code>, <code>details</code>, <code>status</code>, <code>created_at</code>, <code>acknowledged_at</code></td><td>Reason: suspicious, inaccurate, duplicate, unavailable, other.</td></tr>
+          <tr><td><code>moderation_actions</code></td><td><code>listing_id</code>, <code>report_id</code>, <code>moderator_id</code>, <code>action</code>, <code>reason</code>, <code>created_at</code></td><td>Append-only.</td></tr>
+          <tr><td><code>listing_availability_history</code></td><td><code>listing_id</code>, <code>from_status</code>, <code>to_status</code>, <code>actor_id</code>, <code>actor_type</code>, <code>created_at</code></td><td>Written on every state change, including system expiry.</td></tr>
+          <tr><td><code>contact_events</code></td><td><code>listing_id</code>, <code>user_id</code>, <code>device_hash</code>, <code>ip_hash</code>, <code>kind</code>, <code>created_at</code></td><td>Kind: reveal, call_click.</td></tr>
+          <tr><td><code>audit_log</code></td><td><code>actor_id</code>, <code>action</code>, <code>entity_type</code>, <code>entity_id</code>, <code>before</code>, <code>after</code>, <code>created_at</code></td><td>Append-only; the app's database role has no UPDATE or DELETE on it.</td></tr>
+          <tr><td><code>analytics_events</code></td><td><code>name</code>, <code>session_id</code>, <code>user_id</code>, <code>props</code> (jsonb), <code>created_at</code></td><td>Partitioned by month (FR-20).</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Key indexes</h3>
+<pre><code>-- Public search: only published, visible rentals are indexed
+CREATE INDEX ix_listings_search ON property_listings
+  (location_id, bedrooms, monthly_rent_bdt, last_confirmed_at DESC, id DESC)
+  WHERE status = 'published' AND NOT is_hidden AND purpose = 'rent';
+
+CREATE INDEX ix_locations_path   ON locations USING gist (path);
+CREATE INDEX ix_aliases_trgm     ON location_aliases USING gin (normalized gin_trgm_ops);
+CREATE INDEX ix_listings_text    ON property_listings USING gin (search_vector);
+CREATE INDEX ix_listings_expiry  ON property_listings (expires_at) WHERE status = 'published';</code></pre>
+    </section>
+
+    <!-- 5 -->
+    <section id="states">
+      <h2><span class="num">5</span>Listing state machine</h2>
+      <p class="lead">The domain layer allows only the transitions below; any other request returns 409 with code <code>invalid_transition</code>.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>From</th><th>To</th><th>Actor</th><th>Guard and side effects</th></tr></thead>
+        <tbody>
+          <tr><td>Draft</td><td>Pending review</td><td>Owner</td><td>Required fields set; at least 3 photos with <code>scan_status = clean</code></td></tr>
+          <tr><td>Pending review</td><td>Published</td><td>Moderator</td><td>Sets <code>published_at</code>, <code>last_confirmed_at = now</code>, <code>expires_at = now + 30 days</code>; in-app and push notice to owner</td></tr>
+          <tr><td>Pending review</td><td>Changes requested</td><td>Moderator</td><td>Reason required; in-app and push notice to owner</td></tr>
+          <tr><td>Pending review</td><td>Rejected</td><td>Moderator</td><td>Reason required; in-app and push notice to owner</td></tr>
+          <tr><td>Changes requested</td><td>Pending review</td><td>Owner</td><td>Same guards as first submit</td></tr>
+          <tr><td>Published</td><td>Published</td><td>Owner</td><td>Reconfirm: resets <code>last_confirmed_at</code> and <code>expires_at</code></td></tr>
+          <tr><td>Published</td><td>Paused</td><td>Owner</td><td>Removed from search immediately</td></tr>
+          <tr><td>Paused</td><td>Published</td><td>Owner</td><td>Only if <code>expires_at</code> is in the future; otherwise goes to Expired</td></tr>
+          <tr><td>Published</td><td>Rented</td><td>Owner</td><td>Removed from search immediately</td></tr>
+          <tr><td>Published</td><td>Expired</td><td>System</td><td>Expiry job when <code>expires_at</code> passes</td></tr>
+          <tr><td>Expired</td><td>Published</td><td>Owner</td><td>Renew: same effect as reconfirm</td></tr>
+          <tr><td>Any except Pending review</td><td>Archived</td><td>Owner</td><td>Terminal for the owner; kept for audit</td></tr>
+        </tbody>
+      </table></div>
+      <ul>
+        <li><strong>Hide (FR-12)</strong> is a flag, not a status: a moderator sets <code>is_hidden</code> on a published listing, and it leaves search without changing the owner's state.</li>
+        <li>Every transition writes <code>listing_availability_history</code>; moderator actions also write <code>moderation_actions</code> and <code>audit_log</code> in the same transaction.</li>
+        <li>Public queries check <code>expires_at &gt; now()</code> as well as status, so a listing disappears on time even if the expiry job is late.</li>
+      </ul>
+    </section>
+
+    <!-- 6 -->
+    <section id="api">
+      <h2><span class="num">6</span>API</h2>
+      <p class="lead">A versioned REST API under <code>/api/v1</code>, JSON in and out, documented with OpenAPI and protected by role-based policies.</p>
+      <h3>Public</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><span class="verb">GET</span></td><td><code>/listings</code></td><td>Search with filters, sort and cursor (section 7)</td></tr>
+          <tr><td><span class="verb">GET</span></td><td><code>/listings/{shortId}</code></td><td>Listing detail; never includes phone or full address</td></tr>
+          <tr><td><span class="verb">POST</span></td><td><code>/listings/{shortId}/contact</code></td><td>Reveal phone; rate-limited; logs a contact event</td></tr>
+          <tr><td><span class="verb">POST</span></td><td><code>/listings/{shortId}/reports</code></td><td>Report a listing</td></tr>
+          <tr><td><span class="verb">GET</span></td><td><code>/locations</code>, <code>/locations/suggest?q=</code></td><td>Location tree and spelling-tolerant suggestions</td></tr>
+          <tr><td><span class="verb">GET</span></td><td><code>/property-types</code>, <code>/amenities</code></td><td>Configured lists</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Account</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><span class="verb">POST</span></td><td><code>/auth/register</code></td><td>Phone, password, name; signs in immediately</td></tr>
+          <tr><td><span class="verb">POST</span></td><td><code>/auth/login</code>, <code>/auth/logout</code></td><td>Session cookie</td></tr>
+          <tr><td><span class="verb">POST</span></td><td><code>/auth/password/change</code></td><td>Signed-in password change</td></tr>
+          <tr><td><span class="verb">POST</span></td><td><code>/auth/password/reset/confirm</code></td><td>Redeem an admin-issued reset token</td></tr>
+          <tr><td><span class="verb">GET</span> <span class="verb">PATCH</span></td><td><code>/me</code></td><td>Profile and locale</td></tr>
+          <tr><td><span class="verb">GET</span> <span class="verb">POST</span></td><td><code>/me/notifications</code>, <code>/me/notifications/{id}/read</code></td><td>In-app inbox</td></tr>
+          <tr><td><span class="verb">PUT</span> <span class="verb">DEL</span></td><td><code>/me/push-subscriptions</code></td><td>Register or remove this browser for push</td></tr>
+          <tr><td><span class="verb">GET</span> <span class="verb">PUT</span> <span class="verb">DEL</span></td><td><code>/me/saved</code>, <code>/me/saved/{listingId}</code></td><td>Saved properties (FR-14)</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Owner</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><span class="verb">GET</span> <span class="verb">POST</span></td><td><code>/owner/listings</code></td><td>List own listings; create a draft</td></tr>
+          <tr><td><span class="verb">GET</span> <span class="verb">PATCH</span></td><td><code>/owner/listings/{id}</code></td><td>Read and edit, including charges and amenities</td></tr>
+          <tr><td><span class="verb">POST</span></td><td><code>/owner/listings/{id}/{action}</code></td><td>Action: submit, reconfirm, pause, resume, mark-rented, renew, archive</td></tr>
+          <tr><td><span class="verb">POST</span></td><td><code>/owner/listings/{id}/photos/upload-url</code></td><td>Short-lived, write-only upload URL</td></tr>
+          <tr><td><span class="verb">POST</span> <span class="verb">PATCH</span> <span class="verb">DEL</span></td><td><code>/owner/listings/{id}/photos</code></td><td>Register an upload, reorder, remove</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Admin (moderator or admin role)</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><span class="verb">GET</span></td><td><code>/admin/stats</code></td><td>User, listing, pending and report counts; freshness</td></tr>
+          <tr><td><span class="verb">GET</span></td><td><code>/admin/listings</code>, <code>/admin/listings/{id}/history</code></td><td>Search by title, location, advertiser, status; full history</td></tr>
+          <tr><td><span class="verb">POST</span></td><td><code>/admin/listings/{id}/{action}</code></td><td>Action: approve, reject, request-changes, hide, unhide</td></tr>
+          <tr><td><span class="verb">GET</span> <span class="verb">POST</span></td><td><code>/admin/reports</code>, <code>/admin/reports/{id}/resolve</code></td><td>Report queue</td></tr>
+          <tr><td><span class="verb">GET</span> <span class="verb">POST</span></td><td><code>/admin/users</code>, <code>/admin/users/{id}/{action}</code></td><td>Action: restrict, suspend, reinstate, issue-password-reset (admin only)</td></tr>
+          <tr><td><span class="verb">CRUD</span></td><td><code>/admin/locations</code>, <code>/admin/amenities</code>, <code>/admin/property-types</code></td><td>Configuration (admin only)</td></tr>
+          <tr><td><span class="verb">GET</span></td><td><code>/admin/audit</code></td><td>Audit trail (FR-18)</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 7 -->
+    <section id="search">
+      <h2><span class="num">7</span>Search</h2>
+      <p class="lead">Search is a single indexed PostgreSQL query: filters combine with AND, a location matches itself and every area beneath it, and results page by keyset for stable ordering.</p>
+      <h3>Parameters</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Parameter</th><th>Example</th><th>Rule</th></tr></thead>
+        <tbody>
+          <tr><td><code>location</code></td><td><code>dhamrai</code></td><td>Slug; includes descendants via <code>ltree</code></td></tr>
+          <tr><td><code>minRent</code>, <code>maxRent</code></td><td><code>10000</code>, <code>25000</code></td><td>Inclusive, whole taka</td></tr>
+          <tr><td><code>bedrooms</code>, <code>bathrooms</code></td><td><code>2</code></td><td>Exact match; null values never match</td></tr>
+          <tr><td><code>type</code>, <code>furnishing</code>, <code>occupancy</code></td><td><code>flat</code>, <code>any</code></td><td><code>any</code> or absent means no filter</td></tr>
+          <tr><td><code>availableBy</code></td><td><code>2026-12-01</code></td><td><code>available_from</code> is null or on or before the date</td></tr>
+          <tr><td><code>q</code></td><td><code>lift parking</code></td><td>Full-text over title, description, amenities</td></tr>
+          <tr><td><code>sort</code></td><td><code>confirmed</code></td><td>confirmed (default), newest, rent_asc, rent_desc</td></tr>
+          <tr><td><code>cursor</code>, <code>size</code></td><td><code>eyJ...</code>, <code>20</code></td><td>Opaque keyset cursor; size at most 24</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Query shape</h3>
+<pre><code>SELECT l.*
+FROM property_listings l
+JOIN locations loc ON loc.id = l.location_id
+WHERE l.status = 'published' AND NOT l.is_hidden AND l.purpose = 'rent'
+  AND l.expires_at &gt; now()
+  AND loc.path &lt;@ @locationPath
+  AND l.monthly_rent_bdt BETWEEN @minRent AND @maxRent
+  AND l.bedrooms = @bedrooms
+  AND (l.last_confirmed_at, l.id) &lt; (@cursorConfirmedAt, @cursorId)
+ORDER BY l.last_confirmed_at DESC, l.id DESC
+LIMIT @size;</code></pre>
+      <ul>
+        <li>The result count runs as a separate <code>COUNT(*)</code> with the same filters, so the "homes found" number is always real.</li>
+        <li>The search URL mirrors these parameters, so results are bookmarkable and shareable.</li>
+        <li><strong>Spellings.</strong> Location suggest matches <code>location_aliases.normalized</code> with trigram similarity, so "Dhamrai", "Dhamray" and "ধামরাই" resolve to the same place. Aliases are curated, not machine transliterated.</li>
+        <li><strong>Keyword text.</strong> PostgreSQL has no Bangla stemmer, so <code>search_vector</code> uses the <code>simple</code> configuration over both scripts.</li>
+        <li><strong>No paid ranking.</strong> Sort order uses only freshness or price (PRD section 8).</li>
+        <li><strong>Empty state.</strong> With zero results the API returns suggestions (raise budget, widen area); the web app never renders placeholder listings.</li>
+      </ul>
+    </section>
+
+    <!-- 8 -->
+    <section id="auth">
+      <h2><span class="num">8</span>Auth and roles</h2>
+      <p class="lead">Users sign in with phone number and password. Nothing is sent to the phone: numbers are not verified at launch, and forgotten passwords are reset with admin help.</p>
+      <h3>Sessions</h3>
+      <ul>
+        <li>ASP.NET Core Identity issues an <code>HttpOnly</code>, <code>Secure</code>, <code>SameSite=Lax</code> cookie. Front Door serves web and API from one origin, so no tokens live in the browser.</li>
+        <li>State-changing requests require an antiforgery token. Sessions slide for 30 days; changing the password ends other sessions.</li>
+        <li>Moderators and admins must enable TOTP two-factor sign-in.</li>
+      </ul>
+      <h3>Registration and recovery</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Rule</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Phone number</td><td>Validated for Bangladeshi mobile format and unique, but not verified</td></tr>
+          <tr><td>Password</td><td>At least 8 characters; checked against a common-password list</td></tr>
+          <tr><td>Registration limit</td><td>At most 5 accounts per IP per day; WAF bot rules on the endpoint</td></tr>
+          <tr><td>Login limit</td><td>Lockout for 15 minutes after 10 failed attempts</td></tr>
+          <tr><td>Forgotten password</td><td>User contacts support; an admin checks identity and issues a single-use reset link valid for 24 hours. Every issue is audited.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout warn"><p><strong>Risk: unverified numbers.</strong> Anyone can register with a number they don't own, which can lead to impersonation or number squatting. Mitigations: every listing is moderated, listings show the contact number as "not verified", reports go to moderators, and an admin can release a number to its real holder. <code>phone_verified_at</code> and an <code>IPhoneVerifier</code> interface are kept so verification can be added later without schema changes.</p></div>
+      <h3>Roles</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Role</th><th>Can</th></tr></thead>
+        <tbody>
+          <tr><td>Anonymous</td><td>Search, view, reveal phone (rate-limited), report</td></tr>
+          <tr><td>Member</td><td>All of the above, plus save listings and manage profile</td></tr>
+          <tr><td>Owner</td><td>Member rights, plus create and manage own listings. Only owners can post at launch.</td></tr>
+          <tr><td>Moderator</td><td>Review, approve, reject, request changes, hide; handle reports</td></tr>
+          <tr><td>Admin</td><td>Moderator rights, plus user actions and configuration</td></tr>
+        </tbody>
+      </table></div>
+      <p>An Agent role is reserved in the enum but disabled until agents are allowed post-launch.</p>
+    </section>
+
+    <!-- 9 -->
+    <section id="media">
+      <h2><span class="num">9</span>Photo pipeline</h2>
+      <p class="lead">The MVP stores photos on Cloudinary. When usage outgrows the free plan, either move to a Cloudinary paid plan (no code change) or adopt the self-managed pipeline below, whichever costs less at that volume.</p>
+      <p><strong>Option A: stay on Cloudinary.</strong> Keep the MVP flow (uploads through the API, incoming transformation, named and strict transformations). Optionally switch to direct signed browser uploads to take upload traffic off the API, plus an orphan-cleanup job now that background jobs exist.</p>
+      <p><strong>Option B: self-managed pipeline.</strong> Photos upload straight from the browser to Blob Storage, are scanned for malware, stripped of location metadata, resized, and only then shown. Existing photos are migrated by downloading originals through Cloudinary's Admin API using the stored public IDs.</p>
+      <ol>
+        <li>The web app asks the API for an upload URL. The API returns a write-only SAS for one blob in the <code>incoming</code> container, valid for 10 minutes.</li>
+        <li>The browser uploads the file directly. Limits: JPEG, PNG or WebP; at most 10 MB; at most 20 photos per listing.</li>
+        <li>Defender for Storage scans the blob and publishes the result through Event Grid.</li>
+        <li>The worker checks the file signature, strips EXIF data (including GPS, which could reveal the exact address), and writes 3 WebP sizes (320, 768 and 1280 px wide) to the <code>public</code> container.</li>
+        <li>The photo's <code>scan_status</code> becomes <code>clean</code>. Infected or invalid files are deleted and marked <code>rejected</code>, and the owner sees why.</li>
+      </ol>
+      <p>Front Door serves the <code>public</code> container under <code>/media</code> with long cache lifetimes; file names contain a content hash, so replaced photos get new URLs.</p>
+    </section>
+
+    <!-- 10 -->
+    <section id="contact">
+      <h2><span class="num">10</span>Contact reveal and analytics</h2>
+      <p class="lead">The advertiser's phone number is never in the page HTML; it is fetched only when a tenant taps Contact, and each reveal is limited and logged.</p>
+      <ul>
+        <li><code>POST /listings/{shortId}/contact</code> returns the number and a <code>tel:</code> link. No login is required.</li>
+        <li>Limits are enforced in Redis per IP and per device cookie. Starting values: 10 reveals per hour and 30 per day. These are placeholders until the exact limits are decided (PRD section 17).</li>
+        <li>Front Door WAF bot rules add a second layer against scrapers.</li>
+        <li>Each reveal writes a <code>contact_events</code> row with hashed IP and device identifiers, never raw IPs.</li>
+      </ul>
+      <h3>Tracked events (FR-20)</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Event</th><th>Recorded by</th><th>Main properties</th></tr></thead>
+        <tbody>
+          <tr><td><code>search_performed</code></td><td>API</td><td>Filters, result count, sort</td></tr>
+          <tr><td><code>listing_viewed</code></td><td>Web (client)</td><td>Listing, source page</td></tr>
+          <tr><td><code>contact_revealed</code></td><td>API</td><td>Listing, logged in or not</td></tr>
+          <tr><td><code>listing_submitted</code></td><td>API</td><td>Listing, first or resubmit</td></tr>
+          <tr><td><code>listing_published</code>, <code>listing_reconfirmed</code>, <code>listing_expired</code></td><td>API / worker</td><td>Listing, days since last confirm</td></tr>
+          <tr><td><code>report_created</code></td><td>API</td><td>Listing, reason</td></tr>
+        </tbody>
+      </table></div>
+      <p>A nightly job rolls these up into the admin dashboard's metrics: completeness, owner activation, search-to-contact conversion and freshness.</p>
+    </section>
+
+    <!-- 11 -->
+    <section id="jobs">
+      <h2><span class="num">11</span>Background jobs</h2>
+      <p class="lead">Six Hangfire jobs run in the worker; each is idempotent so a retry never sends a duplicate notification or double-expires a listing.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Job</th><th>Schedule</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>ExpireListings</td><td>Every 15 minutes</td><td>Moves Published listings past <code>expires_at</code> to Expired; writes history; notifies the owner</td></tr>
+          <tr><td>ReconfirmReminders</td><td>Daily, 10:00 Dhaka time</td><td>In-app and push reminders 3 days before expiry and on the expiry day</td></tr>
+          <tr><td>SendPush</td><td>On demand</td><td>Sends queued Web Push messages with retries; deletes subscriptions that return 404 or 410</td></tr>
+          <tr><td>ProcessPhoto</td><td>On scan result</td><td>Pipeline step 4 in section 9</td></tr>
+          <tr><td>CleanupOrphans</td><td>Daily</td><td>Deletes unregistered uploads older than 24 hours and expired reset tokens</td></tr>
+          <tr><td>RollupMetrics</td><td>Nightly</td><td>Aggregates analytics for the admin dashboard</td></tr>
+        </tbody>
+      </table></div>
+      <p>The Hangfire dashboard is mounted inside the admin area and requires the admin role.</p>
+      <h3>Notifications</h3>
+      <ul>
+        <li><strong>In-app first.</strong> Every notice is written to <code>notifications</code> and shown as a banner and inbox on the owner dashboard, so nothing depends on push being enabled.</li>
+        <li><strong>Web Push.</strong> The Next.js app registers a service worker and asks owners for permission after their first listing is submitted, not on first visit. Messages are signed with VAPID keys held in Key Vault.</li>
+        <li><strong>Reach limits.</strong> Android Chrome supports push in the browser. On iPhone, Safari delivers web push only after the owner adds BasaChai to the home screen, so the dashboard shows an "Add to Home Screen" prompt on iOS.</li>
+        <li><strong>Safe failure.</strong> An owner who never sees a reminder loses nothing but freshness: the listing expires on time and can be renewed from the dashboard.</li>
+      </ul>
+    </section>
+
+    <!-- 12 -->
+    <section id="security">
+      <h2><span class="num">12</span>Security and privacy</h2>
+      <p class="lead">Defaults are deny-by-default access, encryption in transit and at rest, minimal personal data, and an audit trail for every privileged action.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Area</th><th>Control</th></tr></thead>
+        <tbody>
+          <tr><td>Transport</td><td>HTTPS only, HSTS, TLS 1.2 or later at Front Door</td></tr>
+          <tr><td>Secrets</td><td>Key Vault accessed by managed identity, including VAPID push keys; no secrets in config files or pipelines</td></tr>
+          <tr><td>Input</td><td>FluentValidation on every request; EF Core parameters only; HTML in descriptions is stripped, and the web app escapes all output</td></tr>
+          <tr><td>Rate limits</td><td>ASP.NET Core rate limiter backed by Redis for registration, login, listing submission, reports and phone reveals</td></tr>
+          <tr><td>Headers</td><td>Content Security Policy, <code>X-Content-Type-Options</code>, <code>Referrer-Policy</code>, frame denial</td></tr>
+          <tr><td>Full address</td><td>Encrypted at column level with ASP.NET Core Data Protection keys held in Key Vault; never returned by public endpoints</td></tr>
+          <tr><td>Personal data</td><td>Only phone, name and password hash are required. IPs and device IDs are stored hashed with a rotating salt. Users can delete their account.</td></tr>
+          <tr><td>Least privilege</td><td>Separate database roles for API, worker and migrations; the audit table is insert-only</td></tr>
+          <tr><td>Dependencies</td><td>Dependabot or Renovate updates, plus vulnerability scans of NuGet, npm and container images in CI</td></tr>
+          <tr><td>Verification wording</td><td>The API returns <code>phoneVerified: false</code> for every listing at launch, and the web app labels the number "not verified". There is no ownership-verified field until a real process exists.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 13 -->
+    <section id="l10n">
+      <h2><span class="num">13</span>Localization</h2>
+      <p class="lead">Bangla is the default locale, with every string in message files so English can be added without code changes.</p>
+      <ul>
+        <li><strong>Routing.</strong> next-intl with locale-prefixed routes: <code>/bn/...</code> (default) and <code>/en/...</code> reserved for later.</li>
+        <li><strong>Data.</strong> Locations, property types and amenities have <code>name_bn</code> and <code>name_en</code>. Listing text is stored as the owner typed it.</li>
+        <li><strong>Money.</strong> Stored as whole taka in <code>integer</code>. Displayed with <code>Intl.NumberFormat('bn-BD', { style: 'currency', currency: 'BDT', maximumFractionDigits: 0 })</code>, which gives Bangla digits and lakh grouping (৳২,০০,০০০).</li>
+        <li><strong>Phone numbers.</strong> Accept <code>01XXXXXXXXX</code>, <code>8801XXXXXXXXX</code> or <code>+8801XXXXXXXXX</code>; validate against <code>^(?:\+?880|0)1[3-9]\d{8}$</code>; store as E.164 (<code>+8801XXXXXXXXX</code>).</li>
+        <li><strong>Time.</strong> Stored in UTC; displayed in Asia/Dhaka (UTC+6, no daylight saving).</li>
+        <li><strong>Fonts.</strong> Noto Sans Bengali, self-hosted and subset, with <code>font-display: swap</code>.</li>
+      </ul>
+    </section>
+
+    <!-- 14 -->
+    <section id="seo">
+      <h2><span class="num">14</span>SEO and web performance</h2>
+      <p class="lead">Public pages are server-rendered with readable URLs, cached at the edge, and kept under the PRD's 2.5-second target on mid-range phones.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Page</th><th>URL pattern</th><th>Rendering and cache</th></tr></thead>
+        <tbody>
+          <tr><td>Area results</td><td><code>/bn/rent/dhaka/dhamrai</code></td><td>SSR; CDN cache 60 s with stale-while-revalidate</td></tr>
+          <tr><td>Property</td><td><code>/bn/rent/dhaka/dhamrai/2-bedroom-flat-k7f3q2</code></td><td>SSR; CDN cache 60 s; purged on edit or status change</td></tr>
+          <tr><td>Static pages</td><td><code>/bn/safety</code>, <code>/bn/how-it-works</code></td><td>Static generation</td></tr>
+        </tbody>
+      </table></div>
+      <ul>
+        <li>Each property page has a title, meta description, canonical URL and Open Graph image (first photo).</li>
+        <li>A sitemap of published listings and area pages is regenerated hourly.</li>
+        <li>Listings that are no longer published show a "no longer available" page with <code>noindex</code> and nearby alternatives, and drop out of the sitemap.</li>
+        <li><strong>Performance budget.</strong> Largest Contentful Paint under 2.5 s on a mid-range Android phone over 4G; API search p95 under 500 ms server time; responsive WebP images with lazy loading below the fold.</li>
+        <li><strong>Accessibility.</strong> WCAG 2.2 AA: labelled filters, keyboard-operable dialogs, visible focus, 4.5:1 text contrast.</li>
+      </ul>
+    </section>
+
+    <!-- 15 -->
+    <section id="infra">
+      <h2><span class="num">15</span>Azure infrastructure</h2>
+      <p class="lead">Three environments (dev, staging, prod) built from the same Bicep modules in one Azure region close to Bangladesh.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Resource</th><th>Starting prod size</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Container Apps environment</td><td>web: 1 to 3 replicas · api: 1 to 3 · worker: 1</td><td>Scale on HTTP concurrency; minimum 1 replica so there are no cold starts</td></tr>
+          <tr><td>PostgreSQL Flexible Server</td><td>General Purpose, 2 vCores, 64 GB</td><td>Extensions: <code>pg_trgm</code>, <code>ltree</code>, <code>unaccent</code>. Burstable tier in dev.</td></tr>
+          <tr><td>Storage account</td><td>Standard, zone-redundant</td><td>Containers: incoming, public, private. Soft delete and versioning on.</td></tr>
+          <tr><td>Defender for Storage</td><td>On-upload malware scanning</td><td>Prod and staging</td></tr>
+          <tr><td>Azure Cache for Redis</td><td>Basic C0 (dev), Standard C1 (prod)</td><td>Rate limits and short-lived cache</td></tr>
+          <tr><td>Front Door Premium + WAF</td><td>One profile for all environments</td><td>Managed rule set and bot protection</td></tr>
+          <tr><td>Key Vault, Container Registry</td><td>Standard</td><td>Managed identities only</td></tr>
+          <tr><td>Application Insights + Log Analytics</td><td>30-day retention</td><td>Sampling on for high-volume traces</td></tr>
+        </tbody>
+      </table></div>
+      <p><strong>Region.</strong> Central India is the starting choice as the nearest Azure region to Dhaka. Confirm with latency tests from Dhamrai mobile networks in Phase 0, and have counsel confirm any Bangladeshi data-residency requirements before launch.</p>
+    </section>
+
+    <!-- 16 -->
+    <section id="ops">
+      <h2><span class="num">16</span>Reliability and observability</h2>
+      <p class="lead">The 99.5% monthly target allows about 3.6 hours of downtime a month; one region with managed backups and alerting meets it at post-MVP scale.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Concern</th><th>Approach</th></tr></thead>
+        <tbody>
+          <tr><td>Backups</td><td>PostgreSQL point-in-time restore, 14 days, geo-redundant backup storage. Blob soft delete for 14 days.</td></tr>
+          <tr><td>Recovery targets</td><td>RPO 1 hour, RTO 4 hours. Restore drill every quarter in staging.</td></tr>
+          <tr><td>Health</td><td><code>/health/live</code> and <code>/health/ready</code> (database, Redis, Blob) used by Container Apps probes</td></tr>
+          <tr><td>Logging</td><td>Structured JSON logs with trace IDs; no phone numbers or addresses in logs</td></tr>
+          <tr><td>Tracing</td><td>OpenTelemetry from web, API and worker into Application Insights</td></tr>
+          <tr><td>Alerts</td><td>5xx rate over 1% for 5 minutes; search p95 over 1 s; failed jobs; push send failures over 5%; database CPU over 80%; storage over 80%</td></tr>
+          <tr><td>Reports SLA</td><td>Dashboard shows unacknowledged reports older than one business day (PRD target)</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 17 -->
+    <section id="testing">
+      <h2><span class="num">17</span>Testing</h2>
+      <p class="lead">The PRD's acceptance criteria become automated end-to-end tests, with unit and integration tests underneath. The MVP suite (test cases in each <a href="specs/README.md">spec</a> and the <a href="specs/journey.md">journeys</a>) carries over; new work adds tests for jobs, push and Redis.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Level</th><th>Tools</th><th>Covers</th></tr></thead>
+        <tbody>
+          <tr><td>Unit</td><td>xUnit, NSubstitute or hand-written fakes</td><td>State machine, pricing lines, phone normalization, reset tokens, mappers</td></tr>
+          <tr><td>Integration</td><td>WebApplicationFactory, Testcontainers PostgreSQL and Redis</td><td>Endpoints, search SQL, migrations, rate limits, authorization policies</td></tr>
+          <tr><td>End to end</td><td>Playwright (mobile and desktop viewports)</td><td>Every item in PRD section 16, in Bangla</td></tr>
+          <tr><td>Accessibility</td><td>axe-core in Playwright</td><td>Search, property, post-a-property and admin pages</td></tr>
+          <tr><td>Load</td><td>k6</td><td>Search and property pages against the 2.5 s and 500 ms targets</td></tr>
+          <tr><td>Security</td><td>OWASP ZAP baseline scan in staging</td><td>Headers, injection, auth bypass</td></tr>
+        </tbody>
+      </table></div>
+      <p>Moq and AutoMapper are banned, so neither appears in any test or production project.</p>
+    </section>
+
+    <!-- 18 -->
+    <section id="cicd">
+      <h2><span class="num">18</span>CI/CD</h2>
+      <p class="lead">Azure Pipelines builds every pull request and promotes the same container images from staging to prod with a manual approval.</p>
+      <ol>
+        <li><strong>Pull request:</strong> build, lint, unit and integration tests, vulnerability scan, Bicep what-if.</li>
+        <li><strong>Main branch:</strong> build images, push to Container Registry, build the EF Core migration bundle.</li>
+        <li><strong>Staging:</strong> apply migrations, deploy new revisions, run Playwright smoke tests and the ZAP baseline.</li>
+        <li><strong>Prod:</strong> manual approval, apply migrations, deploy with traffic split (10% then 100%), automatic rollback if health checks fail.</li>
+      </ol>
+      <p>Migrations must be backward compatible with the previous release (expand, then contract) so a rollback never needs a database restore.</p>
+    </section>
+
+    <!-- 19 -->
+    <section id="trace">
+      <h2><span class="num">19</span>Requirement traceability</h2>
+      <p class="lead">Each PRD functional requirement maps to the part of this design that delivers it.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>FR</th><th>Delivered by</th></tr></thead>
+        <tbody>
+          <tr><td class="nw">FR-01</td><td>Anonymous <code>GET /listings</code>, SSR pages (sections 6, 14)</td></tr>
+          <tr><td class="nw">FR-02, 03, 04</td><td>Search parameters, query and indexes (section 7)</td></tr>
+          <tr><td class="nw">FR-05, 06</td><td>Listing DTOs with <code>listing_charges</code> lines and freshness (sections 4, 6)</td></tr>
+          <tr><td class="nw">FR-07</td><td>Identity sessions, <code>/auth</code> and <code>/me</code> (section 8)</td></tr>
+          <tr><td class="nw">FR-08</td><td>Deferred: no phone verification at launch; <code>phone_verified_at</code> and <code>IPhoneVerifier</code> reserved (section 8)</td></tr>
+          <tr><td class="nw">FR-09, 10</td><td>Owner endpoints and state machine (sections 5, 6)</td></tr>
+          <tr><td class="nw">FR-11</td><td>Photo pipeline (section 9)</td></tr>
+          <tr><td class="nw">FR-12</td><td>Admin listing actions and hide flag (sections 5, 6)</td></tr>
+          <tr><td class="nw">FR-13</td><td>Contact reveal endpoint and limits (section 10)</td></tr>
+          <tr><td class="nw">FR-14</td><td><code>saved_listings</code> and <code>/me/saved</code></td></tr>
+          <tr><td class="nw">FR-15</td><td><code>listing_reports</code> and the report endpoint</td></tr>
+          <tr><td class="nw">FR-16</td><td>Status, hide and expiry filters in every public query (sections 5, 7)</td></tr>
+          <tr><td class="nw">FR-17</td><td>Admin search endpoints</td></tr>
+          <tr><td class="nw">FR-18</td><td><code>moderation_actions</code>, <code>audit_log</code>, history table</td></tr>
+          <tr><td class="nw">FR-19</td><td>URL scheme, metadata, sitemap (section 14)</td></tr>
+          <tr><td class="nw">FR-20</td><td>Analytics events and rollups (section 10)</td></tr>
+          <tr><td class="nw">FR-21</td><td>next-intl, bilingual reference data (section 13)</td></tr>
+          <tr><td class="nw">FR-22</td><td><code>purpose</code> column and <code>sale_details</code> jsonb (section 4)</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 20 -->
+    <section id="open">
+      <h2><span class="num">20</span>Open technical questions</h2>
+      <p class="lead">Six items need an answer before this iteration starts. Several are also open in the MVP design and may be settled there first.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Question</th><th>Default until decided</th></tr></thead>
+        <tbody>
+          <tr><td>When and how should phone verification return?</td><td>Not in the MVP; revisit in Phase 2 (for example WhatsApp OTP or moderator call-back) behind <code>IPhoneVerifier</code></td></tr>
+          <tr><td>How does support confirm identity before issuing a password reset?</td><td>Match the account's name, listings and registered number on a support call; record the check in the audit log</td></tr>
+          <tr><td>Exact phone-reveal rate limits</td><td>10 per hour and 30 per day per IP and device</td></tr>
+          <tr><td>Dhamrai location seed data and spelling aliases</td><td>Collect during Phase 0 interviews</td></tr>
+          <tr><td>Can anonymous visitors report listings?</td><td>Yes, rate-limited per IP, so tenants can flag scams without signing up</td></tr>
+          <tr><td>Azure region and data residency</td><td>Central India, pending latency tests and legal review</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <footer>BasaChai Technical Design: Post-MVP · Version 2.0 · 13 October 2026 · Follows the MVP design · Companion to the BasaChai PRD v1.4</footer>
+  </main>
+</div>
+</body>
+</html>

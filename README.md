@@ -1,6 +1,6 @@
 # BasaChai
 
-Bangla-first rental marketplace, MVP for the Dhamrai pilot. The specs in [`../specs`](../specs/README.md) are the source of truth; the [master spec](../BasaChai-Master-Spec.html) wins if anything disagrees.
+Bangla-first rental marketplace, MVP for the Dhamrai pilot. The specs in [`docs/specs`](docs/specs/README.md) are the source of truth; the [master spec](docs/BasaChai-Master-Spec.html) wins if anything disagrees.
 
 | Part | Stack | Folder |
 | --- | --- | --- |
@@ -8,6 +8,7 @@ Bangla-first rental marketplace, MVP for the Dhamrai pilot. The specs in [`../sp
 | Web | Next.js 15 (App Router, SSR), next-intl | `web/` |
 | Tests | xUnit + Testcontainers (API), Playwright (web) | `tests/`, `web/e2e/` |
 | Seed data | The `pilot` dataset shared by every test | `deploy/seed/pilot.json` |
+| Docs | Specs (source of truth), master spec, PRD, technical designs, prototype | `docs/` |
 
 ## Run it locally
 

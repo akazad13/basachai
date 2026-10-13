@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BasaChai MVP Design</title>
+<meta name="description" content="Low-cost MVP technical design for BasaChai: one Linux VPS, .NET 10 API, PostgreSQL, Next.js on Netlify, photos on Cloudinary, Cloudflare free plan.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Bengali:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbfaf7;
+    --surface: #ffffff;
+    --ink: #1c1d1f;
+    --muted: #5d6066;
+    --line: #d9d6cc;
+    --rule: #ebe8df;
+    --accent: #1f6fd1;
+    --accent-tint: rgba(31, 111, 209, 0.10);
+    --warn: #a2620a;
+    --warn-tint: rgba(162, 98, 10, 0.12);
+    --good: #2e7d4f;
+    --good-tint: rgba(46, 125, 79, 0.12);
+    --code-bg: #f1efe8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17181a;
+      --surface: #1f2023;
+      --ink: #ecebe7;
+      --muted: #a3a5aa;
+      --line: #45464b;
+      --rule: #2f3034;
+      --accent: #6ea8f0;
+      --accent-tint: rgba(110, 168, 240, 0.14);
+      --warn: #e0a54a;
+      --warn-tint: rgba(224, 165, 74, 0.14);
+      --good: #6cc391;
+      --good-tint: rgba(108, 195, 145, 0.14);
+      --code-bg: #2a2b2f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17181a;
+    --surface: #1f2023;
+    --ink: #ecebe7;
+    --muted: #a3a5aa;
+    --line: #45464b;
+    --rule: #2f3034;
+    --accent: #6ea8f0;
+    --accent-tint: rgba(110, 168, 240, 0.14);
+    --warn: #e0a54a;
+    --warn-tint: rgba(224, 165, 74, 0.14);
+    --good: #6cc391;
+    --good-tint: rgba(108, 195, 145, 0.14);
+    --code-bg: #2a2b2f;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.6 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .layout { max-width: 1120px; margin: 0 auto; padding: 0 16px; display: grid; grid-template-columns: 1fr; gap: 48px; }
+  @media (min-width: 1000px) { .layout { grid-template-columns: 220px minmax(0, 1fr); padding: 0 32px; } }
+  nav.toc { display: none; }
+  @media (min-width: 1000px) {
+    nav.toc { display: block; position: sticky; top: 32px; align-self: start; max-height: calc(100vh - 64px); overflow-y: auto; padding-top: 56px; font-size: 13.5px; }
+    nav.toc p { margin: 0 0 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-size: 11.5px; }
+    nav.toc ol { list-style: none; margin: 0; padding: 0; }
+    nav.toc a { display: block; padding: 4px 0; color: var(--muted); text-decoration: none; }
+    nav.toc a:hover { color: var(--ink); }
+  }
+  main { min-width: 0; max-width: 780px; padding: 48px 0 96px; }
+
+  header.doc-head { border-bottom: 1px solid var(--line); padding-bottom: 28px; margin-bottom: 8px; }
+  .bn { font-family: "Noto Sans Bengali", sans-serif; font-weight: 700; color: var(--accent); font-size: 18px; margin: 0 0 6px; }
+  h1 { font-size: 40px; line-height: 1.15; margin: 0 0 10px; letter-spacing: -0.02em; }
+  .tagline { font-size: 18px; color: var(--muted); margin: 0 0 18px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--muted); }
+  .meta span { border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; background: var(--surface); }
+
+  section { padding-top: 40px; scroll-margin-top: 16px; }
+  h2 { font-size: 24px; line-height: 1.25; margin: 0 0 12px; letter-spacing: -0.01em; }
+  h2 .num { color: var(--muted); font-weight: 500; margin-right: 8px; }
+  h3 { font-size: 17px; margin: 28px 0 8px; }
+  p { margin: 0 0 14px; }
+  .lead { font-size: 17px; }
+  ul, ol { margin: 0 0 14px; padding-left: 22px; }
+  li { margin: 3px 0; }
+  a { color: var(--accent); }
+  code { font-family: "JetBrains Mono", ui-monospace, Consolas, monospace; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 0.86em; }
+  pre { background: var(--code-bg); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 0 0 18px; font-size: 13px; line-height: 1.55; }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  strong { font-weight: 600; }
+
+  .table-wrap { overflow-x: auto; margin: 0 0 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--rule); }
+  th { font-weight: 600; font-size: 12.5px; color: var(--muted); background: var(--bg); white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  tr.total td { font-weight: 600; background: var(--bg); }
+  td.nw { white-space: nowrap; }
+  td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  td code { white-space: nowrap; }
+
+  .verb { display: inline-block; font: 600 11px/1 "JetBrains Mono", monospace; padding: 4px 6px; border-radius: 4px; background: var(--accent-tint); color: var(--accent); min-width: 48px; text-align: center; }
+  .tag { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+  .tag.cut { color: var(--warn); background: var(--warn-tint); }
+  .tag.keep { color: var(--good); background: var(--good-tint); }
+
+  .callout { border-left: 3px solid var(--accent); background: var(--accent-tint); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 0 0 16px; }
+  .callout.warn { border-color: var(--warn); background: var(--warn-tint); }
+  .callout p:last-child { margin: 0; }
+
+  figure { margin: 8px 0 18px; }
+  figure .frame { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 8px; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+  svg text { font-family: "Inter", system-ui, sans-serif; }
+  svg .box { fill: none; stroke: var(--line); stroke-width: 1.25; }
+  svg .box.hi { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 2; }
+  svg .box.ext { stroke-dasharray: 5 4; }
+  svg .zone { fill: var(--bg); stroke: var(--line); stroke-width: 1; }
+  svg .wire { fill: none; stroke: var(--muted); stroke-width: 1.25; opacity: .75; }
+  svg .head { fill: var(--muted); }
+  svg .tt { fill: var(--ink); font-size: 15px; font-weight: 600; }
+  svg .tb { fill: var(--ink); font-size: 13px; font-weight: 600; }
+  svg .q { fill: var(--muted); font-size: 11.5px; }
+  svg .mid { text-anchor: middle; }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  @media (max-width: 600px) { h1 { font-size: 32px; } main { padding-top: 32px; } th, td { padding: 8px 10px; } }
+  @media print { nav.toc { display: none; } .layout { display: block; } body { background: #fff; } }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="toc" aria-label="Contents">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#summary">1. Summary and cost</a></li>
+      <li><a href="#cuts">2. What the MVP leaves out</a></li>
+      <li><a href="#architecture">3. Architecture</a></li>
+      <li><a href="#server">4. Server layout</a></li>
+      <li><a href="#code">5. Code structure</a></li>
+      <li><a href="#data">6. Data model</a></li>
+      <li><a href="#states">7. Listing states, no jobs</a></li>
+      <li><a href="#api">8. API</a></li>
+      <li><a href="#search">9. Search</a></li>
+      <li><a href="#auth">10. Auth and roles</a></li>
+      <li><a href="#media">11. Photos</a></li>
+      <li><a href="#reminders">12. Owner reminders</a></li>
+      <li><a href="#contact">13. Contact and analytics</a></li>
+      <li><a href="#security">14. Security</a></li>
+      <li><a href="#web">15. Web, SEO, localization</a></li>
+      <li><a href="#ops">16. Backups and monitoring</a></li>
+      <li><a href="#deploy">17. Testing and deploy</a></li>
+      <li><a href="#trace">18. Requirement traceability</a></li>
+      <li><a href="#path">19. Path to post-MVP</a></li>
+      <li><a href="#open">20. Open questions</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="doc-head">
+      <p class="bn" lang="bn">বাসা চাই</p>
+      <h1>BasaChai Technical Design: MVP</h1>
+      <p class="tagline">The lowest-cost build of the rental MVP: one Linux VPS, no background jobs, no push.</p>
+      <div class="meta">
+        <span>Version 1.3 (MVP)</span>
+        <span>13 October 2026</span>
+        <span>Photos: Cloudinary</span>
+        <span>Based on PRD v1.4</span>
+        <span>Scope: Phase 1, Dhamrai</span>
+        <span>Next: <a href="BasaChai-Technical-Design-Post-MVP.html">post-MVP design</a></span>
+      </div>
+    </header>
+
+    <!-- 1 -->
+    <section id="summary">
+      <h2><span class="num">1</span>Summary and cost</h2>
+      <p class="lead">The MVP runs the .NET 10 API and PostgreSQL on one 2 vCPU, 4 GB Linux VPS behind Cloudflare's free plan. Next.js runs on Netlify, and photos are stored and served by Cloudinary's free plan. The estimated running cost is about US$6 to US$46 a month while photo use stays within Cloudinary's free plan.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Layer</th><th>MVP choice</th><th>Why it is cheap</th></tr></thead>
+        <tbody>
+          <tr><td>Server</td><td>One Ubuntu LTS VPS, 2 vCPU, 4 GB RAM, Docker Compose</td><td>One flat monthly fee; no managed-service bills</td></tr>
+          <tr><td>Edge</td><td>Cloudflare free plan: DNS, TLS, CDN, basic WAF</td><td>Free; caches public API responses so the VPS serves little traffic</td></tr>
+          <tr><td>Web</td><td>Next.js (App Router, SSR) on Netlify</td><td>Keeps Node off the 4 GB server; no server to run</td></tr>
+          <tr><td>API</td><td>ASP.NET Core on .NET 10 (LTS), one container</td><td>Low memory with workstation GC</td></tr>
+          <tr><td>Database</td><td>PostgreSQL 17 in a container on the same VPS</td><td>No managed-database fee</td></tr>
+          <tr><td>Reverse proxy</td><td>Caddy</td><td>Origin TLS and API proxy in one small process</td></tr>
+          <tr><td>Photos</td><td>Cloudinary free plan: storage, resizing, metadata stripping, CDN delivery</td><td>No disk use or image processing on the VPS; free within the plan's monthly credits</td></tr>
+          <tr><td>Rate limits</td><td>ASP.NET Core in-memory rate limiter</td><td>One API instance, so no Redis needed</td></tr>
+          <tr><td>Backups</td><td>Nightly OS cron: <code>pg_dump</code> + key ring copy to low-cost off-site storage</td><td>Cents per month at pilot data sizes</td></tr>
+          <tr><td>Monitoring</td><td>Container logs with rotation + a free uptime monitor</td><td>No APM bill</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Estimated monthly cost</h3>
+      <p>Approximate figures in US dollars; check current provider prices before choosing.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Item</th><th>Low</th><th>High</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>VPS, 2 vCPU / 4 GB</td><td class="num">$5</td><td class="num">$25</td><td>Varies widely by provider and region</td></tr>
+          <tr><td>Netlify (Next.js)</td><td class="num">$0</td><td class="num">$20</td><td>Free plan to start; a paid plan if bandwidth or function limits are reached</td></tr>
+          <tr><td>Cloudflare</td><td class="num">$0</td><td class="num">$0</td><td>Free plan</td></tr>
+          <tr><td>Cloudinary</td><td class="num">$0</td><td class="num">$0</td><td>Free plan while storage, bandwidth and transformations stay within its monthly credits; paid plans are a large step up (section 11)</td></tr>
+          <tr><td>Off-site backup storage</td><td class="num">&lt; $1</td><td class="num">$1</td><td>Database dumps only; well under a few GB at pilot scale</td></tr>
+          <tr><td>Domain</td><td class="num">$1</td><td class="num">$1</td><td>About $10 to $15 a year for a .com</td></tr>
+          <tr><td>SMS, email, push, APM</td><td class="num">$0</td><td class="num">$0</td><td>Not used in the MVP</td></tr>
+          <tr class="total"><td>Total</td><td class="num">≈ $6</td><td class="num">≈ $46</td><td></td></tr>
+        </tbody>
+      </table></div>
+      <p><strong>Library constraints.</strong> Moq and AutoMapper are banned. Tests use NSubstitute or hand-written fakes, and mapping uses explicit extension methods (<code>ToDto()</code>, <code>ToEntity()</code>). .NET 10 (LTS) replaces the .NET 8 picked in the interview, because .NET 8 support ends on 10 November 2026.</p>
+    </section>
+
+    <!-- 2 -->
+    <section id="cuts">
+      <h2><span class="num">2</span>What the MVP leaves out</h2>
+      <p class="lead">Six post-MVP components are cut or replaced with something that needs no extra process or bill; none of the cuts removes a PRD Must requirement.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Post-MVP component</th><th>MVP</th><th>Replacement</th></tr></thead>
+        <tbody>
+          <tr><td>Background jobs (Hangfire worker)</td><td><span class="tag cut">Cut</span></td><td>Expiry is checked when data is read; reminders are computed when the owner opens the dashboard (sections 7, 12)</td></tr>
+          <tr><td>Web Push and in-app inbox</td><td><span class="tag cut">Cut</span></td><td>Dashboard banners and status badges, computed per request</td></tr>
+          <tr><td>Managed cloud (Azure)</td><td><span class="tag cut">Cut</span></td><td>One VPS with Docker Compose</td></tr>
+          <tr><td>Object storage + malware scanning</td><td><span class="tag cut">Replaced</span></td><td>Cloudinary stores, resizes and serves photos; it accepts only images, and an incoming transformation re-encodes every original (section 11)</td></tr>
+          <tr><td>Redis</td><td><span class="tag cut">Cut</span></td><td>In-memory rate limiter on the single API instance</td></tr>
+          <tr><td>OpenTelemetry + APM</td><td><span class="tag cut">Cut</span></td><td>Structured logs and a free uptime monitor</td></tr>
+          <tr><td>Search, moderation, audit, analytics events</td><td><span class="tag keep">Kept</span></td><td>Same design as post-MVP; they cost nothing extra</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 3 -->
+    <section id="architecture">
+      <h2><span class="num">3</span>Architecture</h2>
+      <p class="lead">Cloudflare sends the website to Netlify and the API to the VPS, where Caddy fronts the API and PostgreSQL stays private; photos go to Cloudinary and browsers load them from Cloudinary's CDN.</p>
+      <figure>
+        <div class="frame">
+          <svg viewBox="0 0 760 484" role="img" aria-label="One small server runs the API and database; Cloudinary serves photos">
+            <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="head" d="M0 0L10 5L0 10z"/></marker></defs>
+            <text class="tt" x="24" y="36">One small server runs the API and database; Cloudinary serves photos</text>
+
+            <rect class="box" x="202" y="60" width="220" height="40" rx="8"/>
+            <text class="tb mid" x="312" y="84">Browser (mobile, desktop)</text>
+
+            <rect class="box hi" x="24" y="128" width="576" height="48" rx="8"/>
+            <text class="tb mid" x="312" y="148">Cloudflare free plan (DNS, TLS, CDN, WAF)</text>
+            <text class="q mid" x="312" y="166">www.{domain} → Netlify · api.{domain} → VPS</text>
+
+            <rect class="box ext" x="24" y="220" width="200" height="80" rx="8"/>
+            <text class="tb mid" x="124" y="248">Next.js web</text>
+            <text class="q mid" x="124" y="268">on Netlify</text>
+            <text class="q mid" x="124" y="286">SSR pages, i18n</text>
+
+            <rect class="zone" x="256" y="208" width="344" height="248" rx="10"/>
+            <text class="q" x="272" y="228">Linux VPS · 2 vCPU, 4 GB · Docker Compose</text>
+
+            <rect class="box" x="272" y="244" width="312" height="48" rx="8"/>
+            <text class="tb mid" x="428" y="264">Caddy</text>
+            <text class="q mid" x="428" y="282">reverse proxy, origin TLS</text>
+
+            <rect class="box" x="272" y="324" width="144" height="64" rx="8"/>
+            <text class="tb mid" x="344" y="350">.NET 10 API</text><text class="q mid" x="344" y="370">REST v1, auth</text>
+            <rect class="box" x="440" y="324" width="144" height="64" rx="8"/>
+            <text class="tb mid" x="512" y="350">PostgreSQL 17</text><text class="q mid" x="512" y="370">data and search</text>
+
+            <rect class="box" x="272" y="408" width="312" height="32" rx="8"/>
+            <text class="q mid" x="428" y="428">Nightly OS cron: pg_dump and key backup</text>
+
+            <rect class="box ext" x="616" y="324" width="120" height="64" rx="8"/>
+            <text class="tb mid" x="676" y="350">Cloudinary</text><text class="q mid" x="676" y="370">photos + CDN</text>
+
+            <rect class="box ext" x="24" y="396" width="200" height="56" rx="8"/>
+            <text class="tb mid" x="124" y="420">Off-site backups</text><text class="q mid" x="124" y="438">low-cost object storage</text>
+
+            <g class="wire">
+              <path d="M312 100V128" marker-end="url(#arr)"/>
+              <path d="M64 176V220" marker-end="url(#arr)"/>
+              <path d="M184 220V176" marker-end="url(#arr)"/>
+              <path d="M428 176V244" marker-end="url(#arr)"/>
+              <path d="M344 292V324" marker-end="url(#arr)"/>
+              <path d="M416 356H440" marker-end="url(#arr)"/>
+              <path d="M422 80H676V324" marker-end="url(#arr)"/>
+              <path d="M344 388V398H676V388" marker-end="url(#arr)"/>
+              <path d="M272 424H224" marker-end="url(#arr)"/>
+            </g>
+            <text class="q" x="192" y="204">API calls</text>
+            <text class="q" x="668" y="198" text-anchor="end">loads images</text>
+            <text class="q" x="612" y="416">uploads</text>
+          </svg>
+        </div>
+        <figcaption>MVP runtime. Next.js renders pages on Netlify and calls the API through Cloudflare. The API forwards each validated upload to Cloudinary, and browsers load resized photos straight from Cloudinary's CDN, so image traffic never touches the VPS. PostgreSQL has no public port. The cron is an operating-system task for backups, not an application job.</figcaption>
+      </figure>
+    </section>
+
+    <!-- 4 -->
+    <section id="server">
+      <h2><span class="num">4</span>Server layout</h2>
+      <p class="lead">Three containers share the 4 GB server, with memory caps that leave over 1 GB for the operating system, file cache and upload bursts; no image processing runs on the server.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Container</th><th>Memory cap</th><th>Key settings</th></tr></thead>
+        <tbody>
+          <tr><td><code>caddy</code></td><td class="num">128 MB</td><td>Cloudflare origin certificate; all requests proxied to the API</td></tr>
+          <tr><td><code>api</code></td><td class="num">1 GB</td><td><code>DOTNET_gcServer=0</code> (workstation GC) to keep memory low; Kestrel limits: 12 MB request body, 100 concurrent connections</td></tr>
+          <tr><td><code>postgres</code></td><td class="num">1.5 GB</td><td><code>shared_buffers=768MB</code>, <code>effective_cache_size=2GB</code>, <code>work_mem=8MB</code>, <code>max_connections=40</code>; data on a named volume; no published port</td></tr>
+          <tr><td>OS, Docker, page cache</td><td class="num">≈ 1.4 GB</td><td>Includes headroom for concurrent photo uploads being forwarded to Cloudinary</td></tr>
+        </tbody>
+      </table></div>
+<pre><code># docker-compose.yml (outline)
+services:
+  caddy:
+    image: caddy:2
+    ports: ["443:443"]               # firewall allows Cloudflare IP ranges only
+    volumes: [./Caddyfile:/etc/caddy/Caddyfile]
+    mem_limit: 128m
+  api:
+    image: ghcr.io/{org}/basachai-api:{version}
+    env_file: /etc/basachai/api.env  # root-only; includes CLOUDINARY_URL, never in git
+    volumes: [dpkeys:/srv/dpkeys]    # Data Protection key ring
+    mem_limit: 1g
+    depends_on: [postgres]
+  postgres:
+    image: postgres:17
+    volumes: [pgdata:/var/lib/postgresql/data]
+    mem_limit: 1536m
+volumes: { dpkeys: {}, pgdata: {} }</code></pre>
+      <p>A 4 GB swap file guards against out-of-memory kills during spikes. Docker's log driver is set to rotate at 10 MB with 5 files per container so logs cannot fill the disk.</p>
+    </section>
+
+    <!-- 5 -->
+    <section id="code">
+      <h2><span class="num">5</span>Code structure</h2>
+      <p class="lead">The .NET solution keeps the post-MVP layering but drops the worker project, so the later move to background jobs adds a project rather than reshaping one.</p>
+<pre><code>basachai/
+  src/
+    BasaChai.Domain/          entities, enums, listing state machine (incl. effective status)
+    BasaChai.Application/     use cases, FluentValidation validators, DTOs, explicit mappers
+    BasaChai.Infrastructure/  EF Core + migrations, Cloudinary photo store
+    BasaChai.Api/             endpoints, auth, CORS, rate-limit policies, ProblemDetails
+  tests/
+    BasaChai.Domain.Tests/        xUnit
+    BasaChai.Application.Tests/   NSubstitute or hand-written fakes
+    BasaChai.Api.Tests/           WebApplicationFactory + Testcontainers PostgreSQL;
+                                  Cloudinary contract tests (nightly)
+  web/                        Next.js app, deployed to Netlify
+    e2e/                      Playwright: one file per feature spec, plus journeys/
+  deploy/                     docker-compose.yml, Caddyfile, API Dockerfile, release, backup and restore scripts, checks
+    seed/                     pilot.json test dataset (Test and Staging only)</code></pre>
+      <p>Photo storage sits behind an <code>IPhotoStore</code> interface (Cloudinary now, using the official <code>CloudinaryDotNet</code> SDK), so moving to object storage later changes one class.</p>
+    </section>
+
+    <!-- 6 -->
+    <section id="data">
+      <h2><span class="num">6</span>Data model</h2>
+      <p class="lead">Seventeen PostgreSQL tables cover the PRD entities, audit and analytics; the post-MVP notification tables are not created yet.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Table</th><th>Key columns</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>users</code></td><td><code>id</code>, <code>phone_e164</code> (unique), <code>phone_verified_at</code>, <code>display_name</code>, <code>password_hash</code>, <code>status</code>, <code>preferred_locale</code></td><td>ASP.NET Core Identity, snake_case. <code>phone_verified_at</code> stays null at launch.</td></tr>
+          <tr><td><code>password_reset_tokens</code></td><td><code>user_id</code>, <code>token_hash</code>, <code>issued_by</code>, <code>expires_at</code>, <code>consumed_at</code></td><td>Admin-issued, single use, 24 hours</td></tr>
+          <tr><td><code>locations</code>, <code>location_aliases</code></td><td><code>path</code> (ltree), <code>kind</code>, <code>name_bn</code>, <code>name_en</code>, <code>slug</code>; <code>alias</code>, <code>normalized</code></td><td>Dhamrai areas active at launch; Bangla and English spellings</td></tr>
+          <tr><td><code>property_types</code>, <code>amenities</code>, <code>listing_amenities</code></td><td><code>name_bn</code>, <code>name_en</code>, <code>is_active</code></td><td>Admin-configurable</td></tr>
+          <tr><td><code>property_listings</code></td><td><code>short_id</code>, <code>owner_id</code>, <code>purpose</code>, <code>location_id</code>, <code>monthly_rent_bdt</code>, <code>bedrooms</code>, <code>bathrooms</code>, <code>furnishing</code>, <code>occupancy_preference</code>, <code>available_from</code>, <code>full_address_enc</code>, <code>status</code>, <code>is_hidden</code>, <code>last_confirmed_at</code>, <code>expires_at</code>, <code>sale_details</code> (jsonb), <code>search_vector</code></td><td><code>purpose</code> rent or sale (FR-22); <code>bedrooms</code> 0 = studio</td></tr>
+          <tr><td><code>listing_charges</code></td><td><code>kind</code>, <code>label</code>, <code>amount_bdt</code>, <code>period</code>, <code>not_specified</code></td><td>One row per cost line (pricing rule)</td></tr>
+          <tr><td><code>listing_photos</code></td><td><code>cloudinary_public_id</code>, <code>version</code>, <code>width</code>, <code>height</code>, <code>bytes</code>, <code>sort_order</code></td><td>Rows exist only for uploads Cloudinary accepted; URLs are built from the public ID, never stored</td></tr>
+          <tr><td><code>saved_listings</code></td><td><code>user_id</code>, <code>listing_id</code></td><td>FR-14</td></tr>
+          <tr><td><code>listing_reports</code></td><td><code>reporter_id</code> (nullable), <code>reason</code>, <code>status</code>, <code>acknowledged_at</code></td><td>FR-15</td></tr>
+          <tr><td><code>moderation_actions</code>, <code>listing_availability_history</code>, <code>audit_log</code></td><td>actor, action, reason, before/after, timestamp</td><td>Append-only (FR-18)</td></tr>
+          <tr><td><code>contact_events</code>, <code>analytics_events</code></td><td><code>listing_id</code>, hashed IP and device; <code>name</code>, <code>props</code> (jsonb)</td><td>FR-20; no partitioning at MVP volume</td></tr>
+        </tbody>
+      </table></div>
+<pre><code>CREATE INDEX ix_listings_search ON property_listings
+  (location_id, bedrooms, monthly_rent_bdt, last_confirmed_at DESC, id DESC)
+  WHERE status = 'published' AND NOT is_hidden AND purpose = 'rent';
+CREATE INDEX ix_listings_expiring ON property_listings (owner_id, expires_at)
+  WHERE status = 'published';
+CREATE INDEX ix_locations_path ON locations USING gist (path);
+CREATE INDEX ix_aliases_trgm   ON location_aliases USING gin (normalized gin_trgm_ops);</code></pre>
+    </section>
+
+    <!-- 7 -->
+    <section id="states">
+      <h2><span class="num">7</span>Listing states without background jobs</h2>
+      <p class="lead">With no scheduler, expiry is a rule applied whenever a listing is read: a Published listing whose <code>expires_at</code> has passed is treated as Expired everywhere, at once.</p>
+      <ul>
+        <li><strong>Effective status.</strong> The domain exposes <code>EffectiveStatus(now)</code>: if <code>status = published</code> and <code>expires_at &lt;= now</code>, it returns Expired. Public search, detail pages, the owner dashboard and admin views all use it.</li>
+        <li><strong>Public queries</strong> also filter on <code>expires_at &gt; now()</code>, so an expired listing leaves search the moment its 30 days run out.</li>
+        <li><strong>Persisting.</strong> The stored status is set to Expired, with a history row, the next time anyone writes to that listing or the owner opens their dashboard. Until then the stored value can lag, but nothing displays it.</li>
+        <li><strong>Renew and reconfirm</strong> work as in the post-MVP design: they reset <code>last_confirmed_at</code> and set <code>expires_at = now + 30 days</code>.</li>
+      </ul>
+      <div class="table-wrap"><table>
+        <thead><tr><th>From</th><th>To</th><th>Actor</th><th>Guard and side effects</th></tr></thead>
+        <tbody>
+          <tr><td>Draft</td><td>Pending review</td><td>Owner</td><td>Required fields set; at least 3 photos</td></tr>
+          <tr><td>Pending review</td><td>Published</td><td>Moderator</td><td>Sets <code>published_at</code>, <code>last_confirmed_at</code>, <code>expires_at = now + 30 days</code></td></tr>
+          <tr><td>Pending review</td><td>Changes requested / Rejected</td><td>Moderator</td><td>Reason required; shown on the owner dashboard</td></tr>
+          <tr><td>Changes requested</td><td>Pending review</td><td>Owner</td><td>Same guards as first submit</td></tr>
+          <tr><td>Published</td><td>Published</td><td>Owner</td><td>Reconfirm</td></tr>
+          <tr><td>Published</td><td>Paused / Rented</td><td>Owner</td><td>Leaves search immediately</td></tr>
+          <tr><td>Paused</td><td>Published</td><td>Owner</td><td>Only if not past <code>expires_at</code></td></tr>
+          <tr><td>Published</td><td>Expired</td><td>Read-time rule</td><td>No job; see above</td></tr>
+          <tr><td>Expired</td><td>Published</td><td>Owner</td><td>Renew</td></tr>
+          <tr><td>Any except Pending review</td><td>Archived</td><td>Owner</td><td>Kept for audit</td></tr>
+        </tbody>
+      </table></div>
+      <p>Moderator <strong>hide</strong> remains a flag (<code>is_hidden</code>), not a status. Hiding from a report resolves every open report on that listing in the same transaction, and each resolution is audited.</p>
+      <p><strong>Editing a Live listing</strong> keeps it Live with no new review, for now. Each edit writes <code>audit_log</code> with before and after values, so a moderator handling a report can see exactly what changed.</p>
+    </section>
+
+    <!-- 8 -->
+    <section id="api">
+      <h2><span class="num">8</span>API</h2>
+      <p class="lead">The API is the post-MVP REST API without the notification and push endpoints, served at <code>api.{domain}/v1</code>.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Group</th><th>Endpoints</th></tr></thead>
+        <tbody>
+          <tr><td>Public</td><td><span class="verb">GET</span> <code>/listings</code>, <code>/listings/{shortId}</code>, <code>/locations</code>, <code>/locations/suggest</code>, <code>/property-types</code>, <code>/amenities</code><br><span class="verb">POST</span> <code>/listings/{shortId}/contact</code>, <code>/listings/{shortId}/reports</code>, <code>/events</code></td></tr>
+          <tr><td>Account</td><td><span class="verb">POST</span> <code>/auth/register</code>, <code>/auth/login</code>, <code>/auth/logout</code>, <code>/auth/password/change</code>, <code>/auth/password/reset/confirm</code><br><span class="verb">GET</span> <span class="verb">PATCH</span> <code>/me</code> · <span class="verb">GET</span> <code>/me/attention</code> (dashboard badges) · <code>/me/saved</code> (GET, PUT, DELETE)</td></tr>
+          <tr><td>Owner</td><td><code>/owner/listings</code> (GET, POST), <code>/owner/listings/{id}</code> (GET, PATCH)<br><span class="verb">POST</span> <code>/owner/listings/{id}/{submit | reconfirm | pause | resume | mark-rented | renew | archive}</code><br><code>/owner/listings/{id}/photos</code> (POST multipart, PATCH order, DELETE)</td></tr>
+          <tr><td>Test (Test and Staging only)</td><td><span class="verb">POST</span> <code>/test/seed</code>, <code>/test/clock</code>, <code>/test/act</code><br><span class="verb">GET</span> <code>/test/listings/{id}</code>, <code>/test/audit</code>, <code>/test/events</code><br>Registered only when <code>ASPNETCORE_ENVIRONMENT</code> is <code>Test</code> or <code>Staging</code>; absent from production</td></tr>
+          <tr><td>Admin</td><td><code>/admin/stats</code>, <code>/admin/listings</code>, <code>/admin/listings/{id}/history</code>, <code>/admin/listings/{id}/{approve | reject | request-changes | hide | unhide}</code>, <code>/admin/reports</code>, <code>/admin/users/{id}/{restrict | suspend | reinstate | issue-password-reset}</code>, <code>/admin/audit</code>, configuration CRUD</td></tr>
+        </tbody>
+      </table></div>
+      <p>Errors use RFC 9457 <code>ProblemDetails</code> with a stable <code>code</code> that Next.js maps to Bangla and English messages. Listing edits use PostgreSQL <code>xmin</code> as a row version; conflicts return 409.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>HTTP</th><th>Codes</th></tr></thead>
+        <tbody>
+          <tr><td>400, 401, 403, 404</td><td><code>validation_failed</code> (with field errors), <code>unauthenticated</code>, <code>forbidden</code>, <code>not_found</code></td></tr>
+          <tr><td>409</td><td><code>invalid_transition</code>, <code>phone_taken</code> (number already has an account), <code>photos_required</code>, <code>photo_limit</code>, <code>stale_listing</code>, <code>already_handled</code> (another moderator acted first)</td></tr>
+          <tr><td>413, 415</td><td><code>photo_too_large</code>, <code>photo_type</code></td></tr>
+          <tr><td>429</td><td><code>rate_limited</code> with <code>retryAfter</code> seconds</td></tr>
+          <tr><td>502</td><td><code>photo_store_unavailable</code></td></tr>
+        </tbody>
+      </table></div>
+      <p>Search requests from the web app send <code>X-Search-Source: home</code> or <code>search</code>, which the API stores on the <code>search_performed</code> event. The full contract is in the <a href="specs/tech/api.md">API spec</a>.</p>
+    </section>
+
+    <!-- 9 -->
+    <section id="search">
+      <h2><span class="num">9</span>Search</h2>
+      <p class="lead">Search is unchanged from the post-MVP design: one indexed query, AND filters, location trees through <code>ltree</code>, and keyset paging.</p>
+<pre><code>SELECT l.*
+FROM property_listings l
+JOIN locations loc ON loc.id = l.location_id
+WHERE l.status = 'published' AND NOT l.is_hidden AND l.purpose = 'rent'
+  AND l.expires_at &gt; now()
+  AND loc.path &lt;@ @locationPath
+  AND l.monthly_rent_bdt BETWEEN @minRent AND @maxRent
+  AND l.bedrooms = @bedrooms
+  AND (l.last_confirmed_at, l.id) &lt; (@cursorConfirmedAt, @cursorId)
+ORDER BY l.last_confirmed_at DESC, l.id DESC
+LIMIT @size;   -- at most 24</code></pre>
+      <ul>
+        <li>Sorts: confirmed (default), newest, rent_asc, rent_desc. No paid ranking.</li>
+        <li>The "homes found" count is a separate <code>COUNT(*)</code> with the same filters.</li>
+        <li>Location suggest uses trigram similarity on curated aliases, so "Dhamrai", "Dhamray" and "ধামরাই" all match.</li>
+        <li>Public <code>GET</code> responses send <code>Cache-Control: public, s-maxage=60</code>, and a Cloudflare cache rule lets the edge absorb repeat searches.</li>
+      </ul>
+    </section>
+
+    <!-- 10 -->
+    <section id="auth">
+      <h2><span class="num">10</span>Auth and roles</h2>
+      <p class="lead">Users sign in with phone number and password. Because the website and API now live on different hosts under one domain, the session cookie is scoped to the parent domain and CORS allows only the website.</p>
+      <ul>
+        <li><strong>Cookie.</strong> ASP.NET Core Identity cookie with <code>Domain=.{domain}</code>, <code>HttpOnly</code>, <code>Secure</code>, <code>SameSite=Lax</code>, sliding 30 days. Next.js forwards it on server-side calls for signed-in pages.</li>
+        <li><strong>CORS.</strong> Only <code>https://www.{domain}</code> is allowed, with credentials. State-changing requests must also carry an antiforgery token in a header.</li>
+        <li><strong>Registration.</strong> Bangladeshi mobile format, unique, not verified. At most 5 accounts per IP per day. Passwords of at least 8 characters, checked against a common-password list.</li>
+        <li><strong>Login.</strong> 15-minute lockout after 10 failed attempts. Moderators and admins must use TOTP two-factor sign-in, which has no running cost.</li>
+        <li><strong>Password reset.</strong> Admin-assisted: support checks identity, an admin issues a single-use 24-hour link, and the action is audited.</li>
+        <li><strong>Roles.</strong> Anonymous, Member, Owner (only owners post at launch), Moderator, Admin. An Agent role is reserved but disabled.</li>
+      </ul>
+      <div class="callout warn"><p><strong>Risk: unverified numbers.</strong> Anyone can register a number they don't own. Every listing is moderated, numbers are labelled "not verified", reports go to moderators, and an admin can release a number to its real holder.</p></div>
+    </section>
+
+    <!-- 11 -->
+    <section id="media">
+      <h2><span class="num">11</span>Photos</h2>
+      <p class="lead">Photos pass through the API to Cloudinary, which stores a re-encoded original and serves resized copies from its CDN; the VPS stores no image files and does no image processing.</p>
+      <h3>Upload</h3>
+      <ol>
+        <li>The owner uploads one photo per request (multipart) to <code>POST /owner/listings/{id}/photos</code>: JPEG, PNG or WebP, at most 10 MB, at most 20 per listing.</li>
+        <li>The API checks ownership, the listing's photo count and the file signature, then streams the file to Cloudinary with the SDK. It does not decode the image itself.</li>
+        <li>The upload uses a signed preset: <code>resource_type=image</code>, allowed formats jpg, png and webp, folder <code>basachai/{env}/listings/{listingId}</code>, and an <strong>incoming transformation</strong> that limits the original to 1600 px wide.</li>
+        <li>The incoming transformation re-encodes the stored original, which drops embedded metadata, including GPS that could reveal the exact address. Confirm in staging that a stored original carries no GPS before launch.</li>
+        <li>Cloudinary rejects files that are not valid images. On success the API saves the public ID, version, size and dimensions in <code>listing_photos</code>.</li>
+      </ol>
+      <p>Routing uploads through the API, rather than direct browser-to-Cloudinary uploads, keeps every check in one place and leaves no uploaded-but-unregistered files to clean up. The API forwards bytes without decoding them, so the 2 vCPUs are not loaded.</p>
+      <h3>Delivery</h3>
+      <ul>
+        <li>Pages use three <strong>named transformations</strong>: <code>card</code> (320 px), <code>detail</code> (768 px) and <code>full</code> (1280 px), each with <code>f_auto,q_auto</code> for the smallest format the browser supports.</li>
+        <li><strong>Strict transformations</strong> are enabled, so only these named transformations can be generated. This stops anyone from requesting arbitrary sizes and using up the monthly credits.</li>
+        <li>URLs include the asset version, so a replaced photo gets a new URL and CDN caches never serve a stale image.</li>
+        <li>Next.js uses a Cloudinary image loader with its own image optimization turned off, so Netlify does not bill for resizing.</li>
+      </ul>
+      <h3>Delete</h3>
+      <p>Removing a photo deletes its row and calls Cloudinary's destroy in the same request. If the Cloudinary call fails, the row is still removed and the public ID is logged at warning level so an admin can delete it from the Cloudinary console; no cleanup job is needed.</p>
+      <h3>Free-plan budget</h3>
+      <p>Cloudinary meters storage, bandwidth and transformations against a monthly credit allowance. Check the current free-plan allowance and terms before launch. A rough pilot estimate:</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Use</th><th>Assumption</th><th>Approximate volume</th></tr></thead>
+        <tbody>
+          <tr><td>Storage</td><td>1,000 listings × 8 photos × about 300 KB original</td><td class="num">≈ 2.4 GB in total</td></tr>
+          <tr><td>Transformations</td><td>200 new listings a month × 8 photos × 3 named sizes, plus a few format variants</td><td class="num">≈ 5,000 to 10,000 a month</td></tr>
+          <tr><td>Bandwidth</td><td>50,000 photo views a month × about 80 KB</td><td class="num">≈ 4 GB a month</td></tr>
+        </tbody>
+      </table></div>
+      <p>The admin dashboard shows Cloudinary usage from its Admin API (fetched when the page opens), so the team sees the trend before the allowance runs out.</p>
+    </section>
+
+    <!-- 12 -->
+    <section id="reminders">
+      <h2><span class="num">12</span>Owner reminders without jobs or push</h2>
+      <p class="lead">Owners learn what needs attention when they visit: the dashboard computes reminders from listing data on every load, so nothing has to run in the background.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Situation</th><th>What the owner sees</th></tr></thead>
+        <tbody>
+          <tr><td>Listing expires within 3 days</td><td>Banner: "Confirm it is still available" with a one-tap Reconfirm button</td></tr>
+          <tr><td>Listing expired</td><td>Banner with Renew button; the listing card shows Expired</td></tr>
+          <tr><td>Changes requested or rejected</td><td>Status badge plus the moderator's reason on the listing card</td></tr>
+          <tr><td>Newly approved</td><td>Status badge: Published</td></tr>
+          <tr><td>Unfinished draft</td><td>Draft row with Continue (back to the step where the owner stopped) and Archive; no banner</td></tr>
+        </tbody>
+      </table></div>
+      <p>The site header shows a count from <code>GET /me/attention</code> so a signed-in owner sees it on any page. Owners who never visit simply let listings expire on time, which protects freshness; the PRD's freshness metric shows whether this is enough.</p>
+    </section>
+
+    <!-- 13 -->
+    <section id="contact">
+      <h2><span class="num">13</span>Contact reveal and analytics</h2>
+      <p class="lead">The phone number is never in page HTML; tapping Contact fetches it, and reveals are limited per IP and device in memory.</p>
+      <ul>
+        <li><code>POST /listings/{shortId}/contact</code> needs no login. Starting limits: 10 reveals per hour and 30 per day per IP and device. These are placeholders until the PRD's open item on limits is settled.</li>
+        <li>The client IP is read from <code>CF-Connecting-IP</code>, which the API trusts only because the firewall accepts traffic from Cloudflare's IP ranges alone.</li>
+        <li>Limits reset if the API restarts. That is acceptable for an MVP; Redis fixes it post-MVP.</li>
+        <li>Events (<code>search_performed</code>, <code>listing_viewed</code>, <code>contact_revealed</code>, <code>listing_submitted</code>, <code>listing_published</code>, <code>report_created</code>) are inserted in the same request. <code>search_performed</code> records its source (home or search) from the <code>X-Search-Source</code> header. Admin metrics are computed by SQL when the dashboard opens; no nightly rollup.</li>
+      </ul>
+    </section>
+
+    <!-- 14 -->
+    <section id="security">
+      <h2><span class="num">14</span>Security</h2>
+      <p class="lead">A single server means hardening the host matters as much as the application.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Area</th><th>Control</th></tr></thead>
+        <tbody>
+          <tr><td>Firewall</td><td><code>ufw</code>: port 443 open only to Cloudflare IP ranges; SSH key-only, no root login, <code>fail2ban</code>; PostgreSQL has no public port</td></tr>
+          <tr><td>Updates</td><td><code>unattended-upgrades</code> for security patches; monthly image rebuilds for .NET and PostgreSQL patches</td></tr>
+          <tr><td>TLS</td><td>Cloudflare "Full (strict)" mode with a Cloudflare origin certificate on Caddy</td></tr>
+          <tr><td>Secrets</td><td><code>/etc/basachai/api.env</code>, owned by root, mode 600, holds the database password and Cloudinary API secret; never in git or CI logs</td></tr>
+          <tr><td>Cloudinary account</td><td>Two-factor sign-in on the console; signed uploads only (no unsigned presets); strict transformations on; separate folders per environment</td></tr>
+          <tr><td>Full address</td><td>Encrypted with ASP.NET Core Data Protection; key ring on a separate volume that is backed up; never returned publicly</td></tr>
+          <tr><td>Input and output</td><td>FluentValidation, EF Core parameters, HTML stripped from descriptions, escaped output in Next.js</td></tr>
+          <tr><td>Rate limits</td><td>Registration, login, listing submission, reports, phone reveals, photo uploads (which also protects Cloudinary credits)</td></tr>
+          <tr><td>Privacy</td><td>Only phone, name and password hash required; IPs and device IDs stored hashed; account deletion supported</td></tr>
+          <tr><td>Wording</td><td>Every contact number labelled "not verified"; no ownership-verified claim</td></tr>
+          <tr><td>Test hooks</td><td><code>/v1/test/*</code> endpoints (reset data, move the clock, act as any user) are registered only in the Test and Staging environments and never in production builds</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 15 -->
+    <section id="web">
+      <h2><span class="num">15</span>Web, SEO and localization</h2>
+      <p class="lead">Next.js on Netlify renders public pages on the server, as Netlify Functions, and calls the API through Cloudflare; pages are cached briefly so most visits never reach the VPS.</p>
+      <ul>
+        <li><strong>Images.</strong> Photo URLs point to Cloudinary's CDN with the named transformations in section 11; Next.js image optimization is off.</li>
+        <li><strong>Routes.</strong> <code>/bn/rent/dhaka/dhamrai</code> and <code>/bn/rent/dhaka/dhamrai/2-bedroom-flat-k7f3q2</code>; <code>/en</code> reserved. Pages revalidate every 60 seconds.</li>
+        <li><strong>SEO.</strong> Title, description, canonical URL, Open Graph image, and a sitemap built on request from published listings. Unavailable listings show a <code>noindex</code> page with alternatives.</li>
+        <li><strong>Localization.</strong> next-intl, Bangla default. Money is stored as whole taka and shown with <code>Intl.NumberFormat('bn-BD', { style: 'currency', currency: 'BDT', maximumFractionDigits: 0 })</code> (৳২,০০,০০০). Phones are stored as E.164 and validated with <code>^(?:\+?880|0)1[3-9]\d{8}$</code>. Times are stored in UTC and shown in Asia/Dhaka.</li>
+        <li><strong>Performance.</strong> Largest Contentful Paint under 2.5 s on a mid-range Android phone over 4G; API search p95 under 500 ms on the VPS.</li>
+        <li><strong>Accessibility.</strong> WCAG 2.2 AA practices.</li>
+      </ul>
+      <p>Every server-rendered page makes a round trip from Netlify's function region to the API, so measure page latency from Bangladesh before launch and lean on the 60-second page cache.</p>
+    </section>
+
+    <!-- 16 -->
+    <section id="ops">
+      <h2><span class="num">16</span>Backups and monitoring</h2>
+      <p class="lead">A single server cannot promise 99.5% uptime, so the MVP aims for about 99% and invests in being able to rebuild quickly from off-site backups.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Concern</th><th>MVP approach</th></tr></thead>
+        <tbody>
+          <tr><td>Database backup</td><td>Nightly <code>pg_dump</code> (compressed, encrypted) copied off-site; keep 14 daily and 8 weekly</td></tr>
+          <tr><td>Key backup</td><td>Nightly copy of the Data Protection key ring off-site (without it, stored addresses cannot be decrypted)</td></tr>
+          <tr><td>Photos</td><td>Stored only in Cloudinary. The database keeps every public ID, so photos can be re-downloaded through the Admin API if needed. Losing the Cloudinary account would lose the photos; owners would re-upload. Mirror originals off-site post-MVP if that risk becomes unacceptable.</td></tr>
+          <tr><td>Provider snapshot</td><td>Weekly VPS snapshot if the provider offers it cheaply</td></tr>
+          <tr><td>Recovery targets</td><td>RPO 24 hours; RTO about 4 hours on a fresh VPS using <code>deploy/</code> scripts. Rehearse a full restore before launch and monthly after.</td></tr>
+          <tr><td>Uptime</td><td>A free uptime monitor checks <code>/health</code> every 5 minutes and alerts by its app or email</td></tr>
+          <tr><td>Errors and logs</td><td>Structured JSON logs to Docker with rotation; optionally a free-tier error tracker</td></tr>
+          <tr><td>Capacity</td><td>Check the provider's CPU, RAM and disk graphs weekly; act on the triggers in section 19</td></tr>
+          <tr><td>Reports SLA</td><td>Admin dashboard highlights reports unacknowledged for more than one business day</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 17 -->
+    <section id="deploy">
+      <h2><span class="num">17</span>Testing and deploy</h2>
+      <p class="lead">Free CI builds and tests every change; a deploy is one script that pulls the new image, migrates, and restarts the API in seconds.</p>
+      <p>Every spec with behaviour lists its own test cases and the code that automates them: 101 test cases across 16 specs, plus 7 end-to-end journeys that prove the PRD's acceptance criteria. Test names start with the test case ID, so CI results trace back to the spec. Detail is in <a href="specs/tech/quality-and-testing.md">quality and testing</a> and <a href="specs/journey.md">journeys</a>.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Level</th><th>Tools</th><th>Covers</th></tr></thead>
+        <tbody>
+          <tr><td>Unit</td><td>xUnit, NSubstitute or fakes</td><td>State machine, effective status, pricing lines, phone normalization, mappers</td></tr>
+          <tr><td>Integration</td><td>WebApplicationFactory, Testcontainers PostgreSQL 17, <code>FakeTimeProvider</code></td><td>Endpoints, search SQL, migrations, transitions, rate limits, CORS, authorization, audit writes</td></tr>
+          <tr><td>Photo contract</td><td>xUnit against a Cloudinary test folder, nightly</td><td>GPS and metadata stripped, named sizes delivered</td></tr>
+          <tr><td>End to end</td><td>Playwright in three projects: <code>bn-mobile</code>, <code>bn-desktop</code>, <code>en-desktop</code>; locally and against staging</td><td>Every feature test case and the seven journeys</td></tr>
+          <tr><td>Accessibility</td><td>axe in Playwright</td><td>Every screen, both languages</td></tr>
+          <tr><td>Load (before launch)</td><td>k6 from a laptop</td><td>Search and property pages against the 2.5 s and 500 ms targets</td></tr>
+          <tr><td>Security</td><td>OWASP ZAP baseline against staging</td><td>Headers, injection, auth bypass</td></tr>
+        </tbody>
+      </table></div>
+      <ul>
+        <li><strong>Shared test data.</strong> One seed file, <code>deploy/seed/pilot.json</code>, is loaded by the API tests and imported by Playwright, so expected values never drift: 15 live listings across the five areas, one owner with a listing in each dashboard state, a review queue of three and two open reports. The shared test password comes from the <code>E2E_PASSWORD</code> environment variable.</li>
+        <li><strong>Time.</strong> The API takes time from <code>TimeProvider</code>; tests move it forward through <code>/v1/test/clock</code> to exercise read-time expiry and reminders without waiting.</li>
+        <li><strong>Before the tests can run</strong>, the build adds the test hooks, the seed file, the Playwright fixtures and five photo fixture files (one carrying GPS data).</li>
+      </ul>
+      <ol>
+        <li>CI (a free tier of GitHub Actions or Azure Pipelines) runs tests and builds the API image to a container registry.</li>
+        <li>The deploy script connects over SSH, pulls the image, runs the image's <code>migrate</code> command with the migration role (migrations, reference data, the API role's grants), then starts the new API and waits for its health check.</li>
+        <li>Migrations stay backward compatible so the previous image can be restarted if the new one fails its health check.</li>
+        <li>Next.js deploys through Netlify's Git-based pipeline, with preview deploys for each pull request.</li>
+      </ol>
+      <p><strong>Staging.</strong> To avoid a second server, staging runs as a separate Compose project on the same VPS with smaller limits, used only before releases and stopped afterwards.</p>
+    </section>
+
+    <!-- 18 -->
+    <section id="trace">
+      <h2><span class="num">18</span>Requirement traceability</h2>
+      <p class="lead">Every PRD Must requirement is delivered in the MVP; only FR-08 (phone verification) is deferred, as the PRD already states.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>FR</th><th>Delivered by</th></tr></thead>
+        <tbody>
+          <tr><td class="nw">FR-01 to 04</td><td>Public search API and SSR pages (sections 8, 9, 15)</td></tr>
+          <tr><td class="nw">FR-05, 06</td><td>Listing DTOs with charge lines and freshness</td></tr>
+          <tr><td class="nw">FR-07</td><td>Identity cookie sessions (section 10)</td></tr>
+          <tr><td class="nw">FR-08</td><td>Deferred; <code>phone_verified_at</code> reserved</td></tr>
+          <tr><td class="nw">FR-09, 10</td><td>Owner endpoints and state machine with read-time expiry (section 7)</td></tr>
+          <tr><td class="nw">FR-11</td><td>Uploads through the API to Cloudinary; reorder and remove through the owner endpoints (section 11)</td></tr>
+          <tr><td class="nw">FR-12, 17, 18</td><td>Admin endpoints, hide flag, audit tables</td></tr>
+          <tr><td class="nw">FR-13</td><td>Contact reveal with in-memory limits (section 13)</td></tr>
+          <tr><td class="nw">FR-14, 15</td><td>Saved listings and reports</td></tr>
+          <tr><td class="nw">FR-16</td><td>Status, hide and <code>expires_at</code> filters on every public query</td></tr>
+          <tr><td class="nw">FR-19, 21</td><td>Next.js routes, metadata, sitemap, next-intl (section 15)</td></tr>
+          <tr><td class="nw">FR-20</td><td>Event inserts and on-demand admin metrics (section 13)</td></tr>
+          <tr><td class="nw">FR-22</td><td><code>purpose</code> and <code>sale_details</code> columns</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 19 -->
+    <section id="path">
+      <h2><span class="num">19</span>Path to post-MVP</h2>
+      <p class="lead">Each cut has a measurable trigger; when it fires, adopt only that part of the <a href="BasaChai-Technical-Design-Post-MVP.html">post-MVP design</a>.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Area</th><th>MVP</th><th>Post-MVP</th><th>Move when</th></tr></thead>
+        <tbody>
+          <tr><td>Reminders</td><td>Dashboard banners</td><td>Hangfire worker, in-app inbox, Web Push</td><td>Sampled freshness falls below the PRD's 80% target</td></tr>
+          <tr><td>Expiry</td><td>Read-time rule</td><td>Scheduled expiry job</td><td>Needed for reminders, or stale stored status causes reporting problems</td></tr>
+          <tr><td>Photos</td><td>Cloudinary free plan</td><td>Cloudinary paid plan, or object storage with own processing and malware scanning (compare costs at the time)</td><td>Usage passes 80% of the free allowance two months running</td></tr>
+          <tr><td>Rate limits</td><td>In memory</td><td>Redis</td><td>More than one API instance</td></tr>
+          <tr><td>Database</td><td>Container on the VPS</td><td>Managed PostgreSQL with point-in-time restore</td><td>A day of data loss becomes unacceptable, or the database needs more than 1.5 GB RAM</td></tr>
+          <tr><td>Hosting</td><td>One VPS</td><td>Managed containers or several VPSs behind a load balancer</td><td>CPU sustained over 70%, or uptime below 99% for two months</td></tr>
+          <tr><td>Observability</td><td>Logs + uptime monitor</td><td>OpenTelemetry and APM</td><td>Incidents take more than an hour to diagnose</td></tr>
+          <tr><td>Analytics</td><td>On-demand SQL</td><td>Nightly rollups</td><td>Admin dashboard queries take more than 2 seconds</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 20 -->
+    <section id="open">
+      <h2><span class="num">20</span>Open questions</h2>
+      <p class="lead">Five items remain and none blocks the build; the VPS choice is deferred until the first deploy.</p>
+      <p>Decided on 13 October 2026: .NET 10, Next.js on Netlify, Cloudinary's free plan, and no re-moderation of edits to live listings (see the <a href="BasaChai-Master-Spec.html#decisions">master spec</a>).</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Question</th><th>Default until decided</th></tr></thead>
+        <tbody>
+          <tr><td>Which VPS provider and region? (deferred)</td><td>Develop locally with the same Docker Compose file; pick by price and latency from Dhamrai mobile networks before the first staging deploy</td></tr>
+          <tr><td>Netlify plan limits and function region</td><td>Start on the free plan; check bandwidth and function limits and page latency from Bangladesh</td></tr>
+          <tr><td>Which off-site backup storage?</td><td>Any low-cost S3-compatible object storage</td></tr>
+          <tr><td>Exact phone-reveal limits</td><td>10 per hour and 30 per day per IP and device</td></tr>
+          <tr><td>Dhamrai location seed data and aliases</td><td>Collected during Phase 0 interviews</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <footer>BasaChai Technical Design: MVP · Version 1.3 · 13 October 2026 · Companion to the BasaChai PRD v1.4 · Followed by the post-MVP design v2.0</footer>
+  </main>
+</div>
+</body>
+</html>

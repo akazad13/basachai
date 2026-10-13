@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only">
+<title>BasaChai Master Spec</title>
+<meta name="description" content="Single source of truth for the BasaChai rental MVP: decisions, requirements, screens, design system, content rules, technical design and open questions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --paper: #F4F6F2; --surface: #FFFFFF; --ink: #17231F; --muted: #586861; --line: #D8E0DA; --rule: #E8EDE9;
+    --green: #0F5E50; --green-tint: #E2EEEA; --on-green: #FFFFFF;
+    --brass: #B7862A; --brass-tint: #F5EBD5; --red: #A63D2A; --red-tint: #F6E3DE;
+    --display: "Baloo Da 2", "Noto Sans Bengali", system-ui, sans-serif;
+    --sans: "Nunito", "Noto Sans Bengali", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --bn: "Noto Sans Bengali", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 var(--sans); }
+  :focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; border-radius: 6px; }
+  a { color: var(--green); }
+  .layout { max-width: 1160px; margin: 0 auto; padding: 0 16px; display: grid; grid-template-columns: 1fr; gap: 48px; }
+  @media (min-width: 1000px) { .layout { grid-template-columns: 230px minmax(0, 1fr); padding: 0 32px; } }
+  nav.toc { display: none; }
+  @media (min-width: 1000px) {
+    nav.toc { display: block; position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; padding-top: 48px; font-size: 13.5px; }
+    nav.toc p { margin: 0 0 8px; font-weight: 700; color: var(--muted); }
+    nav.toc ol { list-style: none; margin: 0; padding: 0; }
+    nav.toc a { display: block; padding: 3px 0; color: var(--muted); text-decoration: none; }
+    nav.toc a:hover { color: var(--ink); }
+  }
+  main { min-width: 0; max-width: 800px; padding: 40px 0 96px; }
+  header.doc-head { border-bottom: 1px solid var(--line); padding-bottom: 24px; }
+  .bn { font-family: var(--display); font-weight: 700; color: var(--green); font-size: 20px; margin: 0; }
+  h1 { font: 700 40px/1.15 var(--display); margin: 4px 0 10px; }
+  .tagline { font-size: 18px; color: var(--muted); margin: 0 0 16px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--muted); }
+  .meta span { border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; background: var(--surface); }
+  section { padding-top: 40px; scroll-margin-top: 16px; }
+  h2 { font: 700 26px/1.25 var(--display); margin: 0 0 10px; }
+  h2 .num { color: var(--muted); font-weight: 500; margin-right: 8px; }
+  h3 { font: 700 19px/1.3 var(--display); margin: 26px 0 8px; }
+  h4 { font-size: 16px; margin: 18px 0 6px; }
+  p { margin: 0 0 12px; }
+  .lead { font-size: 17px; }
+  ul, ol { margin: 0 0 12px; padding-left: 22px; }
+  li { margin: 3px 0; }
+  code { font-family: ui-monospace, Consolas, monospace; background: var(--rule); padding: 1px 5px; border-radius: 4px; font-size: .86em; }
+  [lang="bn"] { font-family: var(--bn); }
+  .table-wrap { overflow-x: auto; margin: 0 0 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--rule); }
+  th { font-weight: 700; font-size: 12.5px; color: var(--muted); background: var(--paper); white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.nw { white-space: nowrap; }
+  td.c { text-align: center; }
+  .yes { color: var(--green); font-weight: 700; }
+  .no { color: var(--muted); }
+  .badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 9px; border-radius: 999px; white-space: nowrap; }
+  .b-must { background: var(--green-tint); color: var(--green); }
+  .b-should { background: var(--brass-tint); color: var(--ink); }
+  .b-def { background: var(--rule); color: var(--muted); }
+  .b-red { background: var(--red-tint); color: var(--red); }
+  .callout { border-left: 3px solid var(--green); background: var(--green-tint); padding: 12px 16px; border-radius: 0 10px 10px 0; margin: 0 0 16px; }
+  .callout.warn { border-color: var(--brass); background: var(--brass-tint); }
+  .callout p:last-child { margin: 0; }
+  .docmap { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin: 0 0 16px; }
+  .docmap a { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; text-decoration: none; color: var(--ink); }
+  .docmap a strong { display: block; color: var(--green); }
+  .docmap a span { font-size: 13.5px; color: var(--muted); }
+  .screen { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 0 0 14px; }
+  .screen h3 { margin-top: 0; }
+  .screen .route { font-size: 13px; color: var(--muted); margin: -4px 0 10px; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 0 0 16px; }
+  .sw { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); font-size: 13px; }
+  .sw i { display: block; height: 44px; }
+  .sw div { padding: 6px 10px; }
+  .sw b { display: block; }
+  .type-sample { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 0 0 10px; }
+  .type-sample .k { font-size: 12.5px; color: var(--muted); }
+  .receipt { background: var(--surface); border: 1px solid var(--brass); border-radius: 14px; padding: 16px 18px; max-width: 380px; font-family: var(--bn); margin: 0 0 16px; }
+  .receipt .t { font: 700 16px var(--display); margin-bottom: 6px; }
+  .r-row { display: flex; align-items: baseline; gap: 8px; font-size: 15px; }
+  .r-row .dots { flex: 1; border-bottom: 2px dotted var(--line); transform: translateY(-5px); }
+  .r-row .amt { font-weight: 600; }
+  .r-total { margin-top: 10px; padding-top: 8px; border-top: 4px double var(--brass); display: flex; justify-content: space-between; align-items: baseline; }
+  .r-total .amt { font: 700 28px/1.2 var(--display); }
+  .r-once { margin-top: 12px; background: var(--brass-tint); border-radius: 10px; padding: 8px 12px; }
+  .r-once .h { font-size: 13px; color: var(--muted); }
+  figure { margin: 8px 0 18px; }
+  figure .frame { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 8px; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  svg text { font-family: "Nunito", sans-serif; }
+  svg .box { fill: none; stroke: var(--line); stroke-width: 1.25; }
+  svg .box.hi { fill: var(--green-tint); stroke: var(--green); stroke-width: 2; }
+  svg .wire { fill: none; stroke: var(--muted); stroke-width: 1.25; opacity: .75; }
+  svg .head { fill: var(--muted); }
+  svg .tt { fill: var(--ink); font-size: 15px; font-weight: 700; }
+  svg .tb { fill: var(--ink); font-size: 13px; font-weight: 700; }
+  svg .q { fill: var(--muted); font-size: 11.5px; }
+  svg .mid { text-anchor: middle; }
+  svg .end { text-anchor: end; }
+  ul.checks { list-style: none; padding: 0; }
+  ul.checks li { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--rule); }
+  ul.checks li:last-child { border-bottom: 0; }
+  ul.checks input { margin-top: 5px; accent-color: var(--green); width: 16px; height: 16px; flex: none; }
+  footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  @media (max-width: 600px) { h1 { font-size: 32px; } th, td { padding: 8px 10px; } }
+  @media print { nav.toc { display: none; } .layout { display: block; } }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="toc" aria-label="Contents">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#about">1. About this spec</a></li>
+      <li><a href="#product">2. Product summary</a></li>
+      <li><a href="#decisions">3. Decision log</a></li>
+      <li><a href="#scope">4. MVP scope</a></li>
+      <li><a href="#roles">5. Roles and permissions</a></li>
+      <li><a href="#fr">6. Functional requirements</a></li>
+      <li><a href="#listing">7. Listing and pricing rules</a></li>
+      <li><a href="#lifecycle">8. Listing lifecycle</a></li>
+      <li><a href="#search">9. Search</a></li>
+      <li><a href="#screens">10. Screens</a></li>
+      <li><a href="#trust">11. Trust and safety</a></li>
+      <li><a href="#design">12. Design system</a></li>
+      <li><a href="#content">13. Content and localization</a></li>
+      <li><a href="#tech">14. Technical design (MVP)</a></li>
+      <li><a href="#analytics">15. Analytics and metrics</a></li>
+      <li><a href="#nfr">16. Non-functional requirements</a></li>
+      <li><a href="#acceptance">17. Launch acceptance</a></li>
+      <li><a href="#roadmap">18. Roadmap and triggers</a></li>
+      <li><a href="#open">19. Open questions</a></li>
+      <li><a href="#glossary">20. Glossary</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="doc-head">
+      <p class="bn" lang="bn">বাসা চাই</p>
+      <h1>BasaChai Master Spec</h1>
+      <p class="tagline">Everything needed to build the rental MVP for Dhamrai, in one place.</p>
+      <div class="meta"><span>Version 1.2</span><span>13 October 2026</span><span>Covers Phase 1 (Rental MVP)</span></div>
+    </header>
+
+    <!-- 1 -->
+    <section id="about">
+      <h2><span class="num">1</span>About this spec</h2>
+      <p class="lead">This is the single source of truth for building the BasaChai MVP. It consolidates the PRD, the MVP technical design and the decisions made while prototyping; the other documents hold the detail and rationale.</p>
+      <div class="callout"><p><strong>Precedence.</strong> If any document disagrees with this spec, this spec wins. Change a decision here first (section 3), then update the detailed document.</p></div>
+      <div class="callout"><p><strong>New in 1.2.</strong> Every spec now carries its own test cases and automation, and end-to-end journeys cover the launch checklist (<a href="#testing">section 14, Testing</a>). Writing the tests also settled five details: draft listings appear on the owner dashboard; hiding a listing closes every open report on it; a <code>phone_taken</code> error for numbers that already have an account; an <code>X-Search-Source</code> header for analytics; and 15 new message keys.</p></div>
+      <div class="docmap">
+        <a href="BasaChai-PRD.html"><strong>PRD v1.4</strong><span>Product goals, users, requirements, decisions</span></a>
+        <a href="BasaChai-Technical-Design-MVP.html"><strong>Technical design: MVP</strong><span>Single-VPS build, cost, API, data</span></a>
+        <a href="BasaChai-Technical-Design-Post-MVP.html"><strong>Technical design: post-MVP</strong><span>Jobs, push, managed cloud, later</span></a>
+        <a href="BasaChai-Prototype.html"><strong>UI prototype</strong><span>Clickable screens with sample data</span></a>
+        <a href="BasaChai-Bangla-Fonts.html"><strong>Bangla font specimens</strong><span>Fonts used by popular sites, compared</span></a>
+        <a href="specs/README.md"><strong>Individual specs (Markdown)</strong><span>One file per feature, rule set and technical area, with acceptance criteria and test cases</span></a>
+        <a href="specs/journey.md"><strong>End-to-end journeys</strong><span>Seven journeys across roles, each with an automated test</span></a>
+        <a href="specs/tech/quality-and-testing.md"><strong>Quality and testing</strong><span>Test levels, shared test data, test hooks, fixtures</span></a>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section id="product">
+      <h2><span class="num">2</span>Product summary</h2>
+      <p class="lead">BasaChai is a Bangla-first rental marketplace where owners post homes for free and tenants see the full monthly cost and call the owner directly. It pilots in Dhamrai and expands to Dhaka next.</p>
+      <div class="table-wrap"><table>
+        <tbody>
+          <tr><th>Promise</th><td><span lang="bn">বাসা খুঁজুন। মালিকের সাথে সরাসরি কথা বলুন।</span> (Find a home. Talk to the owner directly.)</td></tr>
+          <tr><th>Market</th><td>Dhamrai, Dhaka District, Bangladesh. Dhaka city after the pilot.</td></tr>
+          <tr><th>Pilot areas</th><td><span lang="bn">আমিন মডেল টাউন</span> (Amin Model Town), <span lang="bn">বরাত নগর</span> (Barat Nagor), <span lang="bn">দক্ষিণ পাড়া</span> (Dokkhin Para), <span lang="bn">ধামরাই বাজার</span> (Dhamrai Bazar), <span lang="bn">ইসলামপুর</span> (Islampur). Spellings confirmed.</td></tr>
+          <tr><th>Platform</th><td>Mobile-first responsive website; no native apps in the MVP</td></tr>
+          <tr><th>Business model</th><td>Free listings in the MVP; no paid placement</td></tr>
+          <tr><th>Who uses it</th><td>Tenants (search, contact), owners (post, manage), moderators and admins (review, protect)</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 3 -->
+    <section id="decisions">
+      <h2><span class="num">3</span>Decision log</h2>
+      <p class="lead">Twenty-three decisions are settled; they apply everywhere in this spec.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Area</th><th>Decision</th><th>Date</th></tr></thead>
+        <tbody>
+          <tr><td>D1</td><td>Language</td><td>Bangla first; English available through a toggle and structured for later expansion</td><td class="nw">12 Oct 2026</td></tr>
+          <tr><td>D2</td><td>Who posts</td><td>Owners only at launch; clearly labelled agents later</td><td class="nw">12 Oct 2026</td></tr>
+          <tr><td>D3</td><td>Contact</td><td>Phone reveal and call; no WhatsApp or in-app chat</td><td class="nw">12 Oct 2026</td></tr>
+          <tr><td>D4</td><td>Reveal access</td><td>No login needed to reveal a number; reveals are rate-limited</td><td class="nw">12 Oct 2026</td></tr>
+          <tr><td>D5</td><td>Money</td><td>Free listings</td><td class="nw">12 Oct 2026</td></tr>
+          <tr><td>D6</td><td>Coverage</td><td>Dhamrai first (five pilot areas), then Dhaka city</td><td class="nw">12 Oct 2026</td></tr>
+          <tr><td>D7</td><td>Freshness</td><td>Owners reconfirm every 30 days or the listing expires</td><td class="nw">12 Oct 2026</td></tr>
+          <tr><td>D8</td><td>Photos</td><td>At least 3 photos to submit; at most 20</td><td class="nw">12 Oct 2026</td></tr>
+          <tr><td>D9</td><td>SMS</td><td>No SMS of any kind; no phone verification at launch; numbers labelled "not verified"</td><td class="nw">12 Oct 2026</td></tr>
+          <tr><td>D10</td><td>Password reset</td><td>Admin-assisted, single-use link valid 24 hours</td><td class="nw">12 Oct 2026</td></tr>
+          <tr><td>D11</td><td>Notifications</td><td>Dashboard reminders only in the MVP; no push, email or SMS</td><td class="nw">13 Oct 2026</td></tr>
+          <tr><td>D12</td><td>Background jobs</td><td>None in the MVP; expiry is applied when data is read</td><td class="nw">13 Oct 2026</td></tr>
+          <tr><td>D13</td><td>Hosting</td><td>One Linux VPS (2 vCPU, 4 GB) with Docker Compose behind Cloudflare's free plan; not Azure</td><td class="nw">13 Oct 2026</td></tr>
+          <tr><td>D14</td><td>Web app</td><td>Next.js with server rendering, hosted on Netlify (separate from the VPS)</td><td class="nw">13 Oct 2026</td></tr>
+          <tr><td>D15</td><td>API</td><td>ASP.NET Core on .NET 10 (LTS), confirmed; supported until November 2028</td><td class="nw">13 Oct 2026</td></tr>
+          <tr><td>D16</td><td>Database</td><td>PostgreSQL 17 on the VPS</td><td class="nw">13 Oct 2026</td></tr>
+          <tr><td>D17</td><td>Photo storage</td><td>Cloudinary free plan, confirmed; uploads go through the API and usage is watched against the monthly allowance</td><td class="nw">13 Oct 2026</td></tr>
+          <tr><td>D18</td><td>Fonts</td><td>Baloo Da 2 for headings and money; Noto Sans Bengali for Bangla body; Nunito for English body</td><td class="nw">13 Oct 2026</td></tr>
+          <tr><td>D19</td><td>Theme</td><td>Light theme only, even when the device prefers dark</td><td class="nw">13 Oct 2026</td></tr>
+          <tr><td>D20</td><td>Home page</td><td>Shows the 4 most recently confirmed homes (4 across, 2 x 2, or 1 per row)</td><td class="nw">13 Oct 2026</td></tr>
+          <tr><td>D21</td><td>Libraries</td><td>Moq and AutoMapper are banned; use NSubstitute or fakes, and explicit mapping</td><td class="nw">12 Oct 2026</td></tr>
+          <tr><td>D22</td><td>Availability target</td><td>About 99% monthly on one server; 99.5% after the post-MVP move</td><td class="nw">13 Oct 2026</td></tr>
+          <tr><td>D23</td><td>Live listing edits</td><td>Edits to a Live listing stay live without going back to moderation, for now; every edit is logged</td><td class="nw">13 Oct 2026</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 4 -->
+    <section id="scope">
+      <h2><span class="num">4</span>MVP scope</h2>
+      <p class="lead">The MVP completes the rental journey end to end for Dhamrai, with nothing that costs per message or needs a background process.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>In the MVP</th><th>Not in the MVP</th></tr></thead>
+        <tbody>
+          <tr><td>
+            <ul>
+              <li>Home, search, results and property pages</li>
+              <li>Filters, sorting, shareable search URLs</li>
+              <li>Registration and login (phone + password)</li>
+              <li>Owner posting in 4 steps, with photo upload</li>
+              <li>Owner dashboard with reminders and status</li>
+              <li>Phone reveal and call</li>
+              <li>Save homes (signed-in users)</li>
+              <li>Reports and moderation queue</li>
+              <li>Basic admin: users, configuration, audit</li>
+              <li>Bangla and English interface</li>
+              <li>SEO, analytics events, safety, terms, privacy pages</li>
+            </ul></td>
+            <td><ul>
+              <li>Any payments, paid listings or subscriptions</li>
+              <li>Agent accounts</li>
+              <li>SMS, email, push notifications, background jobs</li>
+              <li>Phone or ownership verification</li>
+              <li>Self-service password reset</li>
+              <li>WhatsApp contact and in-app chat</li>
+              <li>Areas outside Dhamrai</li>
+              <li>Native apps, maps, sale listings</li>
+              <li>Digital rental agreements</li>
+            </ul></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 5 -->
+    <section id="roles">
+      <h2><span class="num">5</span>Roles and permissions</h2>
+      <p class="lead">Five roles; anyone can search, reveal a number and report, while saving needs an account and posting needs the owner role.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Action</th><th>Anonymous</th><th>Member</th><th>Owner</th><th>Moderator</th><th>Admin</th></tr></thead>
+        <tbody>
+          <tr><td>Search and view listings</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td></tr>
+          <tr><td>Reveal phone number</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td></tr>
+          <tr><td>Report a listing</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td></tr>
+          <tr><td>Save homes</td><td class="c no">No</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td></tr>
+          <tr><td>Post and manage own listings</td><td class="c no">No</td><td class="c no">No</td><td class="c yes">Yes</td><td class="c no">No</td><td class="c no">No</td></tr>
+          <tr><td>Approve, reject, request changes, hide</td><td class="c no">No</td><td class="c no">No</td><td class="c no">No</td><td class="c yes">Yes</td><td class="c yes">Yes</td></tr>
+          <tr><td>Handle reports</td><td class="c no">No</td><td class="c no">No</td><td class="c no">No</td><td class="c yes">Yes</td><td class="c yes">Yes</td></tr>
+          <tr><td>Restrict, suspend, issue password reset</td><td class="c no">No</td><td class="c no">No</td><td class="c no">No</td><td class="c no">No</td><td class="c yes">Yes</td></tr>
+          <tr><td>Configure areas, types, amenities</td><td class="c no">No</td><td class="c no">No</td><td class="c no">No</td><td class="c no">No</td><td class="c yes">Yes</td></tr>
+        </tbody>
+      </table></div>
+      <p>Moderators and admins must use two-factor sign-in with an authenticator app. An Agent role exists in the data model but is disabled.</p>
+    </section>
+
+    <!-- 6 -->
+    <section id="fr">
+      <h2><span class="num">6</span>Functional requirements</h2>
+      <p class="lead">Eighteen of 22 requirements are Must; three are Should, and phone verification (FR-08) is deferred.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th><th>Spec</th></tr></thead>
+        <tbody>
+          <tr><td class="nw">FR-01</td><td>Browse published rentals without logging in</td><td><span class="badge b-must">Must</span></td><td>§9, §10</td></tr>
+          <tr><td class="nw">FR-02</td><td>Search by area and keywords</td><td><span class="badge b-must">Must</span></td><td>§9</td></tr>
+          <tr><td class="nw">FR-03</td><td>Filter by rent, bedrooms, bathrooms, type, furnishing, occupancy, move-in</td><td><span class="badge b-must">Must</span></td><td>§9</td></tr>
+          <tr><td class="nw">FR-04</td><td>Sort by recently confirmed, newest, rent low to high, rent high to low</td><td><span class="badge b-must">Must</span></td><td>§9</td></tr>
+          <tr><td class="nw">FR-05</td><td>Cards show photo, total monthly cost, key facts, freshness</td><td><span class="badge b-must">Must</span></td><td>§10</td></tr>
+          <tr><td class="nw">FR-06</td><td>Property page shows all facts, cost breakdown, photos, advertiser</td><td><span class="badge b-must">Must</span></td><td>§7, §10</td></tr>
+          <tr><td class="nw">FR-07</td><td>Register, log in, log out, manage profile</td><td><span class="badge b-must">Must</span></td><td>§14</td></tr>
+          <tr><td class="nw">FR-08</td><td>Verify advertiser phone numbers</td><td><span class="badge b-def">Deferred</span></td><td>D9</td></tr>
+          <tr><td class="nw">FR-09</td><td>Create and preview a listing before submitting</td><td><span class="badge b-must">Must</span></td><td>§10</td></tr>
+          <tr><td class="nw">FR-10</td><td>Edit, pause, renew, reconfirm, archive, mark rented</td><td><span class="badge b-must">Must</span></td><td>§8</td></tr>
+          <tr><td class="nw">FR-11</td><td>Upload, reorder and remove photos</td><td><span class="badge b-must">Must</span></td><td>§10, §14</td></tr>
+          <tr><td class="nw">FR-12</td><td>Moderators approve, reject, request changes, hide</td><td><span class="badge b-must">Must</span></td><td>§8, §10</td></tr>
+          <tr><td class="nw">FR-13</td><td>Reveal or call the advertiser's number</td><td><span class="badge b-must">Must</span></td><td>§11</td></tr>
+          <tr><td class="nw">FR-14</td><td>Save and unsave homes</td><td><span class="badge b-should">Should</span></td><td>§10</td></tr>
+          <tr><td class="nw">FR-15</td><td>Report suspicious or wrong listings</td><td><span class="badge b-must">Must</span></td><td>§11</td></tr>
+          <tr><td class="nw">FR-16</td><td>Rented, rejected, expired, paused, hidden and archived listings never appear in public results</td><td><span class="badge b-must">Must</span></td><td>§8, §9</td></tr>
+          <tr><td class="nw">FR-17</td><td>Admins search listings, users and reports</td><td><span class="badge b-must">Must</span></td><td>§10</td></tr>
+          <tr><td class="nw">FR-18</td><td>Audit trail for moderation and admin actions</td><td><span class="badge b-must">Must</span></td><td>§14</td></tr>
+          <tr><td class="nw">FR-19</td><td>Readable URLs and SEO metadata</td><td><span class="badge b-should">Should</span></td><td>§13</td></tr>
+          <tr><td class="nw">FR-20</td><td>Track searches, views, reveals and submissions</td><td><span class="badge b-must">Must</span></td><td>§15</td></tr>
+          <tr><td class="nw">FR-21</td><td>Bangla-first interface with English available</td><td><span class="badge b-should">Should</span></td><td>§13</td></tr>
+          <tr><td class="nw">FR-22</td><td>Data model supports sale listings later</td><td><span class="badge b-must">Must</span></td><td>§14</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 7 -->
+    <section id="listing">
+      <h2><span class="num">7</span>Listing and pricing rules</h2>
+      <p class="lead">Every listing shows each cost on its own line and a true monthly total, so a ৳10,500 rent never hides a ৳2,280 bill.</p>
+      <h3>Fields</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Field</th><th>Required</th><th>Rule</th></tr></thead>
+        <tbody>
+          <tr><td>Title</td><td>Yes</td><td>Plain text, no HTML</td></tr>
+          <tr><td>Type</td><td>Yes</td><td>Flat or semi-pucca house; list is admin-configurable</td></tr>
+          <tr><td>Area</td><td>Yes</td><td>One of the five pilot areas</td></tr>
+          <tr><td>Bedrooms, bathrooms</td><td>Yes</td><td>0 bedrooms means studio</td></tr>
+          <tr><td>Size, floor</td><td>No</td><td>Square feet; floor 0 shown as ground floor</td></tr>
+          <tr><td>Furnishing, who can rent</td><td>Yes</td><td>Furnished, semi-furnished, unfurnished; anyone, family, bachelor, students</td></tr>
+          <tr><td>Available from</td><td>Yes</td><td>Now or a date</td></tr>
+          <tr><td>Monthly rent</td><td>Yes</td><td>Whole taka, more than 0</td></tr>
+          <tr><td>Monthly service charge</td><td>Yes</td><td>0 allowed; shown as "none"</td></tr>
+          <tr><td>Advance</td><td>Yes</td><td>An amount, or explicitly "not specified"</td></tr>
+          <tr><td>Other costs</td><td>No</td><td>Name, amount (may be unknown, for example metered electricity), monthly or one-time</td></tr>
+          <tr><td>Amenities, rules, description</td><td>No</td><td>Amenities from the configured list</td></tr>
+          <tr><td>Full address</td><td>No</td><td>Encrypted; never shown publicly</td></tr>
+          <tr><td>Photos</td><td>Yes</td><td>3 to 20; first photo is the cover</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Cost breakdown</h3>
+      <p><strong>Monthly total</strong> = rent + service charge + every monthly cost with a known amount. Monthly costs with an unknown amount are listed but excluded, with a note saying so. One-time costs (advance, deposits) appear in a separate "paid once when you move in" box and never in the total.</p>
+      <div class="receipt" lang="bn" aria-label="Example cost breakdown">
+        <div class="t">খরচের হিসাব</div>
+        <div class="r-row"><span>ভাড়া</span><span class="dots"></span><span class="amt">৳১০,৫০০</span></div>
+        <div class="r-row"><span>সার্ভিস চার্জ</span><span class="dots"></span><span class="amt">৳১,২০০</span></div>
+        <div class="r-row"><span>গ্যাস বিল (ডাবল চুলা)</span><span class="dots"></span><span class="amt">৳১,০৮০</span></div>
+        <div class="r-total"><span>মাসে মোট</span><span class="amt">৳১২,৭৮০</span></div>
+        <div class="r-once"><div class="h">ওঠার সময় একবার দিতে হবে</div>
+          <div class="r-row"><span>অগ্রিম</span><span class="dots"></span><span class="amt">৳২১,০০০</span></div>
+          <div class="r-row"><span>চাবির জামানত (ফেরতযোগ্য)</span><span class="dots"></span><span class="amt">৳১,০০০</span></div></div>
+      </div>
+      <p>The rent filter matches monthly rent only, not the total. Cards show the total large, with the split underneath.</p>
+    </section>
+
+    <!-- 8 -->
+    <section id="lifecycle">
+      <h2><span class="num">8</span>Listing lifecycle</h2>
+      <p class="lead">A listing is visible to tenants only while Published, not hidden by a moderator, and within 30 days of its last confirmation.</p>
+      <figure>
+        <div class="frame">
+          <svg viewBox="0 0 760 466" role="img" aria-label="A listing is visible to tenants only while Published">
+            <defs><marker id="arr-life" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="head" d="M0 0L10 5L0 10z"/></marker></defs>
+            <text class="tt" x="24" y="36">A listing is visible to tenants only while Published</text>
+            <g class="wire">
+              <path d="M200 110H280" marker-end="url(#arr-life)"/><path d="M480 102H536" marker-end="url(#arr-life)"/><path d="M536 118H480" marker-end="url(#arr-life)"/>
+              <path d="M380 138V232" marker-end="url(#arr-life)"/><path d="M320 138V180H112V232" marker-end="url(#arr-life)"/>
+              <path d="M480 252H536" marker-end="url(#arr-life)"/><path d="M536 268H480" marker-end="url(#arr-life)"/>
+              <path d="M320 288V330H112V382" marker-end="url(#arr-life)"/><path d="M400 288V382" marker-end="url(#arr-life)"/><path d="M450 382V288" marker-end="url(#arr-life)"/>
+              <path d="M480 410H536" marker-end="url(#arr-life)"/>
+            </g>
+            <rect class="box" x="24" y="82" width="176" height="56" rx="8"/><text class="tb mid" x="112" y="104">Draft</text><text class="q mid" x="112" y="124">Owner is editing</text>
+            <rect class="box" x="280" y="82" width="200" height="56" rx="8"/><text class="tb mid" x="380" y="104">In review</text><text class="q mid" x="380" y="124">Awaiting moderation</text>
+            <rect class="box" x="536" y="82" width="200" height="56" rx="8"/><text class="tb mid" x="636" y="104">Changes needed</text><text class="q mid" x="636" y="124">Moderator asked for fixes</text>
+            <rect class="box" x="24" y="232" width="176" height="56" rx="8"/><text class="tb mid" x="112" y="254">Rejected</text><text class="q mid" x="112" y="274">Not approved</text>
+            <rect class="box hi" x="280" y="232" width="200" height="56" rx="8"/><text class="tb mid" x="380" y="254">Live</text><text class="q mid" x="380" y="274">Visible in public search</text>
+            <rect class="box" x="536" y="232" width="200" height="56" rx="8"/><text class="tb mid" x="636" y="254">Paused</text><text class="q mid" x="636" y="274">Hidden by the owner</text>
+            <rect class="box" x="24" y="382" width="176" height="56" rx="8"/><text class="tb mid" x="112" y="404">Rented</text><text class="q mid" x="112" y="424">No longer for rent</text>
+            <rect class="box" x="280" y="382" width="200" height="56" rx="8"/><text class="tb mid" x="380" y="404">Expired</text><text class="q mid" x="380" y="424">Not reconfirmed in 30 days</text>
+            <rect class="box" x="536" y="382" width="200" height="56" rx="8"/><text class="tb mid" x="636" y="404">Archived</text><text class="q mid" x="636" y="424">Kept for audit only</text>
+            <text class="q mid" x="240" y="102">submit</text><text class="q mid" x="508" y="72">request changes</text><text class="q mid" x="508" y="156">resubmit</text>
+            <text class="q" x="388" y="200">approve</text><text class="q mid" x="216" y="172">reject</text>
+            <text class="q mid" x="508" y="246">pause</text><text class="q mid" x="508" y="284">resume</text>
+            <text class="q mid" x="216" y="322">mark rented</text><text class="q end" x="392" y="350">expire</text><text class="q" x="458" y="350">renew</text><text class="q mid" x="508" y="402">archive</text>
+          </svg>
+        </div>
+        <figcaption>Listing lifecycle. Reconfirm keeps a Live listing live for another 30 days. Owners can archive from any state except In review. Moderator "hide" is a flag on a Live listing, not a separate state.</figcaption>
+      </figure>
+      <ul>
+        <li><strong>Submit guard:</strong> required fields complete and at least 3 photos accepted by Cloudinary.</li>
+        <li><strong>Approve</strong> sets last confirmed and expiry (now + 30 days). <strong>Reject</strong> and <strong>request changes</strong> require a reason the owner sees.</li>
+        <li><strong>Expiry without jobs:</strong> a Live listing past its expiry is treated as Expired everywhere at read time, and the stored status is updated on the next write or dashboard visit.</li>
+        <li>Every transition writes availability history; moderator actions also write the moderation and audit logs.</li>
+        <li><strong>Editing a Live listing</strong> (D23) keeps it Live with no new review. Each edit writes the audit log with the before and after values, so moderators can see what changed when a listing is reported.</li>
+      </ul>
+    </section>
+
+    <!-- 9 -->
+    <section id="search">
+      <h2><span class="num">9</span>Search</h2>
+      <p class="lead">Filters combine with AND, live in the URL so a search can be shared, and never match unknown values.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Filter</th><th>URL key</th><th>Values and rule</th></tr></thead>
+        <tbody>
+          <tr><td>Area</td><td><code>area</code></td><td>All of Dhamrai, or one pilot area</td></tr>
+          <tr><td>Rent</td><td><code>min</code>, <code>max</code></td><td>Inclusive, monthly rent in taka</td></tr>
+          <tr><td>Bedrooms, bathrooms</td><td><code>beds</code>, <code>baths</code></td><td>Exact match; studio = 0</td></tr>
+          <tr><td>Type, furnishing</td><td><code>type</code>, <code>furnish</code></td><td>Exact match; empty = any</td></tr>
+          <tr><td>Who can rent</td><td><code>occ</code></td><td>Matches listings for that group or for anyone</td></tr>
+          <tr><td>Move-in</td><td><code>avail</code></td><td>Now, or within a month</td></tr>
+          <tr><td>Sort</td><td><code>sort</code></td><td>Recently confirmed (default), newest, rent low to high, rent high to low</td></tr>
+        </tbody>
+      </table></div>
+      <ul>
+        <li>Active filters show as chips, each removable; "Clear all filters" resets everything except sort.</li>
+        <li>The count ("১৫টি বাসা পাওয়া গেছে") is always the real number of matches.</li>
+        <li><strong>Empty state:</strong> "No homes match these filters", with one-tap fixes for the filters in use: remove max rent, search all of Dhamrai, any number of bedrooms, clear all. Never show placeholder listings.</li>
+        <li>Area suggestions match Bangla and English spellings through curated aliases.</li>
+        <li>No paid ranking. Page size up to 24, with stable ordering.</li>
+      </ul>
+    </section>
+
+    <!-- 10 -->
+    <section id="screens">
+      <h2><span class="num">10</span>Screens</h2>
+      <p class="lead">Eight screens make up the MVP; the <a href="BasaChai-Prototype.html">prototype</a> shows each one with sample data.</p>
+
+      <div class="screen"><h3>Home</h3><p class="route">Route <code>/</code></p>
+        <ul><li>Headline with the brand promise, short description, and a search form (area, max rent, bedrooms).</li>
+          <li>A sample cost breakdown beside the form, captioned to explain that every listing shows costs this way.</li>
+          <li>The 4 most recently confirmed homes: 4 across from 1,100 px, 2 x 2 from 600 px, 1 per row below.</li>
+          <li>"How it works" in three numbered steps, and a safety tip: see the home before you pay.</li></ul></div>
+
+      <div class="screen"><h3>Search results</h3><p class="route">Route <code>/search?…</code></p>
+        <ul><li>Title names the area; live count; sort control; removable filter chips.</li>
+          <li>Filters in a sticky side panel on desktop; a slide-up sheet with "Show results (n)" on phones.</li>
+          <li>Cards: cover photo, freshness ("confirmed 3 days ago"), Save, title, area and type, key facts, total per month with split, advance.</li>
+          <li>Empty state as in §9.</li></ul></div>
+
+      <div class="screen"><h3>Property page</h3><p class="route">Route <code>/listing/{id}</code></p>
+        <ul><li>Photo gallery with thumbnails; freshness; title; area, bedrooms, bathrooms, move-in.</li>
+          <li>Side panel (after the title on phones): cost breakdown; owner name with "Owner" and "Number not verified" badges; "Show number" button that becomes the number plus a Call button; "Don't send any money before you visit"; Save; Report.</li>
+          <li>Body: facts grid, description, amenities, owner's rules, location (area only, with a note that the owner shares the address by phone).</li>
+          <li>Unavailable listings show "This listing is no longer available" with a link home, and are not indexed.</li></ul></div>
+
+      <div class="screen"><h3>Sign in</h3><p class="route">Dialog, opened from Save, Post a property or the header</p>
+        <ul><li>Mobile number and password. Explains why sign-in is needed (to save, or to post).</li>
+          <li>Note: "We don't send codes to your phone. If you forget your password, contact support."</li>
+          <li>Inline errors for an invalid Bangladeshi number or a password under 8 characters. Bangla digits are accepted.</li></ul></div>
+
+      <div class="screen"><h3>Post a property</h3><p class="route">Route <code>/post</code>, owners only</p>
+        <ol><li><strong>Home details:</strong> title, type, area, bedrooms, bathrooms, size, floor, furnishing, who can rent, available from, amenities, description, rules, full address (marked private).</li>
+          <li><strong>Costs:</strong> rent, service charge, advance or "don't state", other costs with monthly or one-time.</li>
+          <li><strong>Photos:</strong> add, reorder, remove; first is the cover; "Add N more photos to submit" until 3.</li>
+          <li><strong>Review and submit:</strong> the listing as tenants will see it; "Submit for review".</li></ol>
+        <ul><li>A live cost breakdown preview stays visible beside the form on desktop.</li>
+          <li>Each step validates before moving on and focuses the first error.</li>
+          <li>Success: "Submitted for review", with links to My listings or post another.</li></ul></div>
+
+      <div class="screen"><h3>My listings (owner dashboard)</h3><p class="route">Route <code>/dashboard</code></p>
+        <ul><li>Banners at the top, computed on each visit: expiring within 3 days (Still available), expired (Renew), changes needed (Edit).</li>
+          <li>Rows in this order: Changes needed, Draft, Expired, In review, Live, Paused, Rented, Rejected. Archived listings are not shown.</li>
+          <li>Draft rows offer Continue (back to the posting step where the owner left off) and Archive, so an unfinished listing is never lost.</li>
+          <li>The header shows a count of listings that need attention.</li>
+          <li>One row per listing: thumbnail, status badge, total per month, days left, views, number views, moderator's note when relevant, and actions for that status.</li></ul></div>
+
+      <div class="screen"><h3>Moderation</h3><p class="route">Route <code>/admin</code>, moderators and admins</p>
+        <ul><li>Counts: waiting for review, live listings, open reports, older than one business day (red when above 0).</li>
+          <li>Review queue, oldest first: photos, details, cost breakdown, owner, submitted time, Overdue tag; Approve, Request changes, Reject (reason required).</li>
+          <li>Reports: reason, tenant's note, age; Hide listing or Dismiss. Hide listing closes every open report on that listing, not just the one acted on.</li></ul></div>
+
+      <div class="screen"><h3>Saved homes</h3><p class="route">Route <code>/saved</code>, signed-in users</p>
+        <ul><li>Cards for saved homes that are still live; empty state invites the user to press Save on homes they like.</li></ul></div>
+
+      <h3>Navigation</h3>
+      <p>Header: logo, language toggle, and links by role (Find a home, Saved, Post a property, Sign in; or My listings for owners; or Moderation for staff). Below 760 px the links become a bottom tab bar. Footer: About, How it works, Safety tips, Support, Terms, Privacy.</p>
+    </section>
+
+    <!-- 11 -->
+    <section id="trust">
+      <h2><span class="num">11</span>Trust and safety</h2>
+      <p class="lead">With no phone verification, every listing is moderated before it goes live and every contact number is labelled "not verified".</p>
+      <ul>
+        <li><strong>Moderation:</strong> every new listing is reviewed. Target: within one business day. Edits to Live listings are not re-reviewed for now (D23); the audit log and reports are the safety net.</li>
+        <li><strong>Reports:</strong> anyone can report (suspicious or a scam, wrong information, posted twice, no longer available) with an optional note. Acknowledge within one business day. Hiding a listing closes every open report on it; Unhide is available on the listing.</li>
+        <li><strong>Wording:</strong> never imply BasaChai has verified the advertiser or the property. "Ownership verified" is only allowed after a real ownership check exists.</li>
+        <li><strong>Safety copy</strong> appears on the home page, the property page and the Safety tips page: see the home before paying anything.</li>
+        <li><strong>Privacy:</strong> the full address is encrypted and never public; photo metadata, including GPS, is removed on upload; IPs and device IDs are stored hashed.</li>
+      </ul>
+      <h3>Rate limits</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Action</th><th>Limit</th></tr></thead>
+        <tbody>
+          <tr><td>Phone reveal</td><td>10 per hour and 30 per day per IP and device (placeholder until decided)</td></tr>
+          <tr><td>Registration</td><td>5 accounts per IP per day</td></tr>
+          <tr><td>Login</td><td>15-minute lockout after 10 failed attempts</td></tr>
+          <tr><td>Listing submission, reports, photo uploads</td><td>Per-account and per-IP limits, tuned in testing</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 12 -->
+    <section id="design">
+      <h2><span class="num">12</span>Design system</h2>
+      <p class="lead">A calm river-green palette with one brass accent, rounded Baloo headings and a light theme only; the cost breakdown is the signature element.</p>
+      <h3>Colour</h3>
+      <div class="swatches">
+        <div class="sw"><i style="background:#F4F6F2"></i><div><b>Paper</b>#F4F6F2, page background</div></div>
+        <div class="sw"><i style="background:#FFFFFF"></i><div><b>Surface</b>#FFFFFF, cards and panels</div></div>
+        <div class="sw"><i style="background:#17231F"></i><div><b>Ink</b>#17231F, text</div></div>
+        <div class="sw"><i style="background:#586861"></i><div><b>Muted</b>#586861, secondary text</div></div>
+        <div class="sw"><i style="background:#D8E0DA"></i><div><b>Line</b>#D8E0DA, borders</div></div>
+        <div class="sw"><i style="background:#0F5E50"></i><div><b>Green</b>#0F5E50, primary actions, Live</div></div>
+        <div class="sw"><i style="background:#B7862A"></i><div><b>Brass</b>#B7862A, cost total rule, focus</div></div>
+        <div class="sw"><i style="background:#A63D2A"></i><div><b>Red</b>#A63D2A, errors, expired, overdue</div></div>
+      </div>
+      <p>Tints: green #E2EEEA, brass #F5EBD5, red #F6E3DE. Text contrast meets WCAG AA. Light theme only: the page declares <code>color-scheme: light</code>.</p>
+      <h3>Type</h3>
+      <div class="type-sample"><div class="k">Headings, logo, money: Baloo Da 2, 600 to 700</div><div style="font:700 28px/1.3 'Baloo Da 2'" lang="bn">বাসা খুঁজুন। মাসে মোট ৳১২,৭৮০</div></div>
+      <div class="type-sample"><div class="k">Bangla body: Noto Sans Bengali, 16 px, line height 1.75</div><div style="font:16px/1.75 'Noto Sans Bengali'" lang="bn">ধামরাই বাজারে ২ শোবার ঘরের ফ্ল্যাট। বাজার ও বাসস্ট্যান্ড হাঁটা দূরত্বে।</div></div>
+      <div class="type-sample"><div class="k">English body: Nunito, 16 px, line height 1.55</div><div style="font:16px/1.55 Nunito">2-bedroom flat in Dhamrai Bazar. Market and bus stand within walking distance.</div></div>
+      <h3>Components</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Component</th><th>Rule</th></tr></thead>
+        <tbody>
+          <tr><td>Cost breakdown</td><td>Dotted leader per line; brass double rule above "Total per month" in Baloo 28 to 30 px; one-time box in brass tint</td></tr>
+          <tr><td>Listing card</td><td>Photo 4:3; freshness dot (green if confirmed within 7 days, brass after); total per month large; split and advance small</td></tr>
+          <tr><td>Status badges</td><td>Live green; In review brass; Changes needed, Rejected, Expired red; Paused, Rented, Archived grey</td></tr>
+          <tr><td>Buttons</td><td>Primary green; Submit for review brass; secondary outlined; destructive outlined red. Labels say what happens.</td></tr>
+          <tr><td>Radii</td><td>Cards 14 px, inputs 10 px, chips and badges fully rounded</td></tr>
+          <tr><td>Focus</td><td>3 px brass outline on every interactive element</td></tr>
+          <tr><td>Photos</td><td>Bangladeshi homes; no landmarks or recognisable faces; demo photos credited as samples</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Layout</h3>
+      <p>Mobile first. Content width up to 1,180 px. Breakpoints: 600 px (2-column cards), 760 px (bottom tab bar below), 860 px (filter sheet below), 900 px (two-column property page), 1,100 px (4-column home grid). No horizontal scrolling at any width.</p>
+    </section>
+
+    <!-- 13 -->
+    <section id="content">
+      <h2><span class="num">13</span>Content and localization</h2>
+      <p class="lead">Bangla is the default; every string lives in message files, numbers show in the reader's script, and copy is plain, active and specific.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Item</th><th>Bangla</th><th>English</th></tr></thead>
+        <tbody>
+          <tr><td>Money</td><td lang="bn">৳১২,৭৮০ (Bangla digits, lakh grouping)</td><td>৳12,780 (lakh grouping)</td></tr>
+          <tr><td>Phone</td><td lang="bn">০১৭০০-০০০১০১</td><td>01700-000101; stored as +8801700000101</td></tr>
+          <tr><td>Dates and freshness</td><td lang="bn">৩ দিন আগে নিশ্চিত করা</td><td>Confirmed 3 days ago (Asia/Dhaka time)</td></tr>
+          <tr><td>Statuses</td><td lang="bn">প্রকাশিত, পর্যালোচনায়, পরিবর্তন দরকার, বাতিল, বন্ধ, ভাড়া হয়েছে, মেয়াদ শেষ, আর্কাইভ</td><td>Live, In review, Changes needed, Rejected, Paused, Rented, Expired, Archived</td></tr>
+          <tr><td>Verification label</td><td lang="bn">নম্বর যাচাই করা হয়নি</td><td>Number not verified</td></tr>
+          <tr><td>Safety line</td><td lang="bn">বাসা দেখার আগে কোনো টাকা পাঠাবেন না।</td><td>Don't send any money before you visit.</td></tr>
+        </tbody>
+      </table></div>
+      <ul>
+        <li><strong>Voice:</strong> sentence case, plain verbs, no apologies in errors. Errors say what is wrong and how to fix it.</li>
+        <li><strong>Consistency:</strong> an action keeps its name through the flow ("Still available" button, "Confirmed" message).</li>
+        <li><strong>Message keys:</strong> beyond the prototype's strings, 15 keys cover account creation, the reveal limit, photo size and type errors, listing history, admin password reset and "This number already has an account". Full table in the <a href="specs/design/content-and-localization.md">content and localization spec</a>.</li>
+        <li><strong>Phone input</strong> accepts 01XXXXXXXXX, 8801XXXXXXXXX or +8801XXXXXXXXX, in Bangla or Latin digits.</li>
+        <li><strong>URLs:</strong> <code>/bn/rent/dhaka/dhamrai/{area}</code> and <code>/bn/rent/dhaka/dhamrai/{area}/{slug}-{shortId}</code>; <code>/en/…</code> for English. Title, description, canonical URL and cover image on every property page; hourly sitemap.</li>
+      </ul>
+    </section>
+
+    <!-- 14 -->
+    <section id="tech">
+      <h2><span class="num">14</span>Technical design (MVP)</h2>
+      <p class="lead">One 2 vCPU, 4 GB Linux VPS runs the .NET 10 API and PostgreSQL behind Cloudflare's free plan; Next.js runs on Netlify and photos live on Cloudinary's free plan, for an estimated US$6 to US$46 a month.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Layer</th><th>Choice</th></tr></thead>
+        <tbody>
+          <tr><td>Edge</td><td>Cloudflare free: DNS, TLS (Full strict), CDN, basic WAF; www.{domain} to Netlify, api.{domain} to the VPS</td></tr>
+          <tr><td>Web</td><td>Next.js App Router on Netlify; server-rendered pages run as Netlify Functions; next-intl; Next.js image optimisation off (Cloudinary resizes)</td></tr>
+          <tr><td>Server</td><td>Ubuntu LTS VPS, Docker Compose: Caddy (128 MB), API (1 GB), PostgreSQL 17 (1.5 GB); firewall open only to Cloudflare</td></tr>
+          <tr><td>API</td><td>ASP.NET Core on .NET 10, EF Core with Npgsql, FluentValidation, ProblemDetails errors, in-memory rate limiter</td></tr>
+          <tr><td>Auth</td><td>ASP.NET Core Identity cookie on .{domain} (HttpOnly, Secure, SameSite=Lax); CORS for the web origin only; antiforgery header</td></tr>
+          <tr><td>Photos</td><td>Uploaded through the API to Cloudinary with a signed preset; incoming transformation (1,600 px max) strips metadata; three named sizes (320, 768, 1,280 px); strict transformations</td></tr>
+          <tr><td>Jobs</td><td>None. Expiry at read time; reminders computed on dashboard load; admin metrics computed on demand</td></tr>
+          <tr><td>Backups</td><td>Nightly OS cron: <code>pg_dump</code> and Data Protection key ring to off-site object storage; 14 daily and 8 weekly; RPO 24 h, RTO about 4 h</td></tr>
+          <tr><td>Monitoring</td><td>Structured logs with rotation; free uptime monitor on <code>/health</code></td></tr>
+          <tr><td>CI/CD</td><td>Free CI tier; image to registry; SSH deploy script runs the image's migrate step with the migration role, then restarts the API</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Data model</h3>
+      <p>Nineteen tables: <code>users</code>, <code>password_reset_tokens</code>, <code>locations</code>, <code>location_aliases</code>, <code>property_types</code>, <code>amenities</code>, <code>listing_amenities</code>, <code>property_listings</code> (with <code>purpose</code> rent or sale), <code>listing_charges</code>, <code>listing_photos</code> (Cloudinary public ID), <code>saved_listings</code>, <code>listing_reports</code>, <code>moderation_actions</code>, <code>listing_availability_history</code>, <code>audit_log</code>, <code>contact_events</code>, <code>analytics_events</code>, <code>app_settings</code>, <code>hash_salts</code>. Money in whole taka; times in UTC; <code>phone_verified_at</code> kept null for later.</p>
+      <h3>API</h3>
+      <p>REST under <code>api.{domain}/v1</code>: public (listings, locations, contact, reports, events), account (auth, me, saved, attention count), owner (listings, actions, photos) and admin (stats, queue, actions, reports, users, configuration, audit). Full list in the <a href="BasaChai-Technical-Design-MVP.html#api">MVP technical design</a> and the <a href="specs/tech/api.md">API spec</a>.</p>
+      <ul>
+        <li><strong>Errors</strong> are ProblemDetails with a stable <code>code</code> the web app maps to Bangla and English, including <code>phone_taken</code> (409) when a number already has an account, <code>already_handled</code> when another moderator acted first and <code>rate_limited</code> with <code>retryAfter</code>.</li>
+        <li><strong>Search source:</strong> the web app sends <code>X-Search-Source: home</code> or <code>search</code> so <code>search_performed</code> records where a search started.</li>
+        <li><strong>Test hooks</strong> under <code>/v1/test/*</code> exist only in the Test and Staging environments and are absent from production builds.</li>
+      </ul>
+      <h3 id="testing">Testing</h3>
+      <p>Every spec with behaviour ends with its own test cases (preconditions, steps, expected result) and the code that automates them: 101 test cases across 16 specs, plus 7 end-to-end journeys. Each test's name starts with its test case ID, so CI results trace back to acceptance criteria. Detail is in <a href="specs/tech/quality-and-testing.md">quality and testing</a>.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Level</th><th>Tools</th><th>Covers</th></tr></thead>
+        <tbody>
+          <tr><td>Unit</td><td>xUnit; NSubstitute or hand-written fakes (D21)</td><td>Status rules, read-time expiry, cost totals, phone normalisation, validators</td></tr>
+          <tr><td>API integration</td><td>xUnit, WebApplicationFactory, Testcontainers PostgreSQL 17, a fake clock</td><td>Endpoints, search, transitions, rate limits, auth, audit writes</td></tr>
+          <tr><td>End to end</td><td>Playwright (TypeScript) in three set-ups: Bangla on a phone, Bangla on desktop, English on desktop</td><td>Every feature test case and every journey</td></tr>
+          <tr><td>Accessibility</td><td>axe in Playwright</td><td>Every screen, both languages</td></tr>
+          <tr><td>Photos</td><td>Contract tests against a Cloudinary test folder, nightly</td><td>Metadata and GPS removed, named sizes delivered</td></tr>
+          <tr><td>Load and security</td><td>k6; OWASP ZAP baseline on staging</td><td>Search and property pages before launch; headers, injection, auth bypass</td></tr>
+        </tbody>
+      </table></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Area</th><th>Test cases</th></tr></thead>
+        <tbody>
+          <tr><td>Features</td><td>Home 5, search 11, property page 10, sign-in and account 8, saved homes 4, posting 9, owner dashboard 7, moderation 8</td></tr>
+          <tr><td>Domain rules</td><td>Pricing 5, lifecycle 8, trust and safety 5</td></tr>
+          <tr><td>Design</td><td>Design system 4, content and localization 4</td></tr>
+          <tr><td>Technical</td><td>Photos 5, operations 5, analytics 3</td></tr>
+        </tbody>
+      </table></div>
+      <p><strong>Shared test data.</strong> One seed file, <code>deploy/seed/pilot.json</code>, is loaded by the API tests and imported by the Playwright tests, so expected values never drift. It holds 15 live listings across the five areas, one owner with a listing in each dashboard state, a review queue of three and two open reports. Tests rely on fixed facts such as: Dokkhin Para returns 3 homes, D3 totals ৳12,780 a month, and the owner has 3 items needing attention. The shared test password comes from an environment variable, never the repository.</p>
+      <p><strong>Test hooks</strong> reset the data, move the API's clock forward (so expiry and reminders can be tested without waiting), run an action as the right person for setup, and read back a listing, the audit log or analytics events.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Journey</th><th>What it proves</th></tr></thead>
+        <tbody>
+          <tr><td class="nw">JRN-01</td><td>A tenant on a phone finds a home in Dokkhin Para, checks the full cost and calls the owner</td></tr>
+          <tr><td class="nw">JRN-02</td><td>A tenant shortlists homes and signs up along the way</td></tr>
+          <tr><td class="nw">JRN-03</td><td>A new owner registers and posts; a moderator approves; a tenant finds the home</td></tr>
+          <tr><td class="nw">JRN-04</td><td>A moderator asks for changes; the owner fixes them; the listing is approved</td></tr>
+          <tr><td class="nw">JRN-05</td><td>A reminder is ignored; the listing expires and leaves search; the owner renews it</td></tr>
+          <tr><td class="nw">JRN-06</td><td>A tenant reports a scam and a moderator hides the listing</td></tr>
+          <tr><td class="nw">JRN-07</td><td>An owner forgets their password and an admin issues a reset link</td></tr>
+        </tbody>
+      </table></div>
+      <p><strong>Before the tests can run</strong>, the build creates the test hooks in the API, the seed file, the Playwright helpers and five photo fixture files (one carrying GPS data). A ticket is done only when its spec's test cases pass in CI in all three Playwright set-ups.</p>
+    </section>
+
+    <!-- 15 -->
+    <section id="analytics">
+      <h2><span class="num">15</span>Analytics and metrics</h2>
+      <p class="lead">Six events feed five pilot metrics, all computed on demand in the admin dashboard.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Event</th><th>When</th></tr></thead>
+        <tbody>
+          <tr><td><code>search_performed</code></td><td>A search runs; filters, sort, result count</td></tr>
+          <tr><td><code>listing_viewed</code></td><td>A property page opens</td></tr>
+          <tr><td><code>contact_revealed</code></td><td>A number is revealed; signed in or not</td></tr>
+          <tr><td><code>listing_submitted</code></td><td>First submit or resubmit</td></tr>
+          <tr><td><code>listing_published</code>, <code>listing_reconfirmed</code>, <code>listing_expired</code></td><td>Lifecycle changes</td></tr>
+          <tr><td><code>report_created</code></td><td>A report is sent</td></tr>
+        </tbody>
+      </table></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Metric</th><th>Pilot target</th></tr></thead>
+        <tbody>
+          <tr><td>Listing completeness</td><td>At least 85% of live listings have every required field</td></tr>
+          <tr><td>Freshness</td><td>At least 80% of sampled listings confirmed available within 30 days</td></tr>
+          <tr><td>Search to contact</td><td>Baseline in month 1, then improve monthly</td></tr>
+          <tr><td>Owner activation</td><td>Track registered owners who publish a first listing</td></tr>
+          <tr><td>Report handling</td><td>Acknowledged within one business day</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 16 -->
+    <section id="nfr">
+      <h2><span class="num">16</span>Non-functional requirements</h2>
+      <p class="lead">The site must be fast on a mid-range Android phone over 4G, accessible, private by default, and recoverable from backups.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Area</th><th>Requirement</th></tr></thead>
+        <tbody>
+          <tr><td>Performance</td><td>Largest Contentful Paint under 2.5 s on a mid-range Android phone over 4G; API search p95 under 500 ms</td></tr>
+          <tr><td>Availability</td><td>About 99% monthly on the single server</td></tr>
+          <tr><td>Accessibility</td><td>WCAG 2.2 AA: labelled controls, keyboard use, visible focus, 4.5:1 text contrast</td></tr>
+          <tr><td>Security</td><td>HTTPS only, secrets in a root-only env file, parameterised queries, output escaping, rate limits, 2FA for staff</td></tr>
+          <tr><td>Privacy</td><td>Minimal personal data; hashed IPs; encrypted address; account deletion</td></tr>
+          <tr><td>Localization</td><td>Correct Bangla rendering and conjuncts, Bangla digits, BDT, Bangladeshi phone formats</td></tr>
+          <tr><td>Responsive</td><td>Works from 360 px phones to desktop with no horizontal scroll</td></tr>
+          <tr><td>Recovery</td><td>Full restore rehearsed before launch and monthly after</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 17 -->
+    <section id="acceptance">
+      <h2><span class="num">17</span>Launch acceptance</h2>
+      <p class="lead">The pilot launches when every item is checked. Each item is proved by an end-to-end journey or named checks; the mapping is in the <a href="specs/journey.md#coverage">journey coverage table</a>.</p>
+      <ul class="checks">
+        <li><input type="checkbox" id="a1"><label for="a1">A visitor can search and filter live rentals in all five pilot areas, in Bangla and English.</label></li>
+        <li><input type="checkbox" id="a2"><label for="a2">A tenant sees the cost breakdown, the correct monthly total and one-time costs on every listing.</label></li>
+        <li><input type="checkbox" id="a3"><label for="a3">A tenant can reveal and call a number without logging in, within the rate limits.</label></li>
+        <li><input type="checkbox" id="a4"><label for="a4">An owner can register, create a listing, upload at least 3 photos and submit it.</label></li>
+        <li><input type="checkbox" id="a5"><label for="a5">An owner sees moderation results and 3-day expiry reminders on the dashboard, and can reconfirm, renew, pause and mark rented.</label></li>
+        <li><input type="checkbox" id="a6"><label for="a6">A moderator can approve, reject or request changes (with a reason) and hide a reported listing.</label></li>
+        <li><input type="checkbox" id="a7"><label for="a7">Rented, expired, paused, hidden and archived listings never appear in public results.</label></li>
+        <li><input type="checkbox" id="a8"><label for="a8">Every contact number is labelled "not verified" and no page implies verification.</label></li>
+        <li><input type="checkbox" id="a9"><label for="a9">Photos have no GPS metadata after upload.</label></li>
+        <li><input type="checkbox" id="a10"><label for="a10">All analytics events are recorded.</label></li>
+        <li><input type="checkbox" id="a11"><label for="a11">Pages meet the performance and accessibility targets on a mid-range Android phone.</label></li>
+        <li><input type="checkbox" id="a12"><label for="a12">Backups run nightly and a full restore has been rehearsed; the uptime monitor alerts.</label></li>
+        <li><input type="checkbox" id="a13"><label for="a13">Terms, privacy and safety pages are published; brand, domain and trademark are cleared.</label></li>
+      </ul>
+    </section>
+
+    <!-- 18 -->
+    <section id="roadmap">
+      <h2><span class="num">18</span>Roadmap and triggers</h2>
+      <p class="lead">After the pilot, each MVP shortcut is replaced only when a measurable trigger fires, following the <a href="BasaChai-Technical-Design-Post-MVP.html">post-MVP design</a>.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Phase</th><th>Focus</th></tr></thead>
+        <tbody>
+          <tr><td>0 Discovery</td><td>Interview tenants and owners, seed the five areas and aliases, test the name, rank the backlog</td></tr>
+          <tr><td>1 Rental MVP</td><td>This spec</td></tr>
+          <tr><td>2 Quality</td><td>Phone verification, freshness, saved searches, notifications, duplicate detection, Dhaka expansion</td></tr>
+          <tr><td>3 Property sales</td><td>Sale listings, seller flows, sale-price filters</td></tr>
+          <tr><td>4 Growth</td><td>Featured listings, subscriptions, agent tools, analytics, app-like web</td></tr>
+        </tbody>
+      </table></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>MVP shortcut</th><th>Replace with</th><th>When</th></tr></thead>
+        <tbody>
+          <tr><td>Dashboard reminders</td><td>Job worker, in-app inbox, web push</td><td>Freshness below 80%</td></tr>
+          <tr><td>Read-time expiry</td><td>Scheduled expiry job</td><td>Needed for reminders or reporting</td></tr>
+          <tr><td>Cloudinary free plan</td><td>Paid plan, or own storage with malware scanning</td><td>Usage above 80% of the allowance two months running</td></tr>
+          <tr><td>In-memory rate limits</td><td>Redis</td><td>More than one API instance</td></tr>
+          <tr><td>Database on the VPS</td><td>Managed PostgreSQL with point-in-time restore</td><td>A day of data loss becomes unacceptable</td></tr>
+          <tr><td>One VPS</td><td>Managed containers or several servers</td><td>CPU above 70%, or uptime below 99% for two months</td></tr>
+          <tr><td>No re-moderation of edits</td><td>Re-review changes to price, area or photos</td><td>Moderators find misleading edits, or reports point to bait-and-switch</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 19 -->
+    <section id="open">
+      <h2><span class="num">19</span>Open questions</h2>
+      <p class="lead">Ten questions remain; each has a working default and none blocks the build. The VPS choice is deferred until deployment.</p>
+      <p>Resolved on 13 October 2026: the .NET version (D15), the Next.js host (D14), the Cloudinary plan (D17) and re-moderation of edits (D23).</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Question</th><th>Working default</th><th>Needed by</th></tr></thead>
+        <tbody>
+          <tr><td>Q1</td><td>VPS provider and region (deferred)</td><td>Develop locally with Docker Compose; choose by price and latency from Dhamrai mobile networks before the first staging deploy</td><td>First deploy</td></tr>
+          <tr><td>Q2</td><td>Netlify plan limits and function region</td><td>Start on the free plan; check bandwidth and function limits and the latency of server-rendered pages from Bangladesh</td><td>Before launch</td></tr>
+          <tr><td>Q3</td><td>Off-site backup storage</td><td>Any low-cost S3-compatible storage</td><td>Before launch</td></tr>
+          <tr><td>Q4</td><td>Exact phone-reveal limits</td><td>10 per hour, 30 per day</td><td>Before launch</td></tr>
+          <tr><td>Q5</td><td>Spelling aliases for the five areas</td><td>Collect common Bangla and English spellings in Phase 0</td><td>Before launch</td></tr>
+          <tr><td>Q6</td><td>Anonymous reports</td><td>Allowed, rate-limited per IP</td><td>Build start</td></tr>
+          <tr><td>Q7</td><td>Identity check before an admin password reset</td><td>Match name, listings and number on a support call; log it</td><td>Before launch</td></tr>
+          <tr><td>Q8</td><td>When and how to add phone verification</td><td>Phase 2; WhatsApp code or moderator call-back</td><td>Phase 2</td></tr>
+          <tr><td>Q9</td><td>Dhaka expansion timing</td><td>After the pilot metrics are met</td><td>Phase 2</td></tr>
+          <tr><td>Q10</td><td>Brand, domain, trademark and data-privacy legal review</td><td>Not started</td><td>Before launch</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- 20 -->
+    <section id="glossary">
+      <h2><span class="num">20</span>Glossary</h2>
+      <div class="table-wrap"><table>
+        <tbody>
+          <tr><th>Advance (<span lang="bn">অগ্রিম</span>)</th><td>Money paid once when moving in, usually one or two months' rent</td></tr>
+          <tr><th>Service charge</th><td>Monthly building charge for shared costs such as guard, lift and cleaning</td></tr>
+          <tr><th>Semi-pucca house</th><td>A house with brick or concrete walls and floor and a tin roof</td></tr>
+          <tr><th>Reconfirm</th><td>The owner confirming a listing is still available, which keeps it live for 30 more days</td></tr>
+          <tr><th>Freshness</th><td>How recently a listing was confirmed, shown as "confirmed N days ago"</td></tr>
+          <tr><th>Hide</th><td>A moderator removing a live listing from search without changing its status</td></tr>
+          <tr><th>Pilot areas</th><td>The five Dhamrai areas covered at launch</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <footer>BasaChai Master Spec · Version 1.2 · 13 October 2026 · Consolidates PRD v1.4, Technical Design MVP v1.3, Post-MVP v2.0, the UI prototype and the individual specs with their test cases</footer>
+  </main>
+</div>
+</body>
+</html>

@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const specs = path.resolve('../../specs');
+const specs = path.resolve('../docs/specs');
 const files = [];
 const walk = dir => {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {

@@ -1,0 +1,1335 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only">
+<title>BasaChai Prototype</title>
+<meta name="description" content="Clickable UI prototype of the BasaChai rental MVP for Dhamrai, with sample data.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F4F6F2;
+    --surface: #FFFFFF;
+    --ink: #17231F;
+    --muted: #586861;
+    --line: #D8E0DA;
+    --green: #0F5E50;
+    --green-tint: #E2EEEA;
+    --on-green: #FFFFFF;
+    --brass: #B7862A;
+    --brass-tint: #F5EBD5;
+    --red: #A63D2A;
+    --red-tint: #F6E3DE;
+    --tile-l: 86%;
+    --tile-s: 26%;
+    --tile-ink-l: 42%;
+    --display: "Baloo Da 2", "Noto Sans Bengali", system-ui, sans-serif;
+    --sans: "Noto Sans Bengali", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  /* Light theme only, even when the device prefers dark. */
+  :root { color-scheme: light; }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.75 var(--sans); }
+  /* English mode: a rounded Latin body face that matches Baloo, with Latin line spacing.
+     Noto Sans Bengali stays in the stack for Bangla names and the taka sign. */
+  html[lang="en"] { --sans: "Nunito", "Noto Sans Bengali", system-ui, -apple-system, "Segoe UI", sans-serif; }
+  html[lang="en"] body { line-height: 1.55; }
+  html[lang="en"] h1, html[lang="en"] h2, html[lang="en"] h3 { letter-spacing: -0.01em; line-height: 1.2; }
+  a { color: var(--green); }
+  img, svg { display: block; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; border-radius: 6px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 600; line-height: 1.25; margin: 0; }
+  h1 { font-weight: 700; }
+  h1 { font-size: 30px; }
+  h2 { font-size: 22px; }
+  h3 { font-size: 18px; }
+  p { margin: 0 0 12px; }
+  @media (min-width: 900px) { h1 { font-size: 40px; } h2 { font-size: 24px; } }
+
+  /* Prototype strip */
+  .proto { background: var(--brass-tint); border-bottom: 1px solid var(--line); font-size: 14px; }
+  .proto .wrap { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding-top: 6px; padding-bottom: 6px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); padding: 2px; }
+  .seg button { border: 0; background: none; padding: 2px 12px; border-radius: 999px; cursor: pointer; color: var(--muted); }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+  /* Header */
+  header.site { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30; }
+  header.site .wrap { display: flex; align-items: center; gap: 12px; height: 64px; }
+  .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--green); font-family: var(--display); font-weight: 700; font-size: 24px; line-height: 1; }
+  .logo svg { color: var(--brass); }
+  .lang { margin-left: auto; border: 1px solid var(--line); background: none; border-radius: 8px; padding: 4px 10px; cursor: pointer; font-size: 14px; }
+  nav.main { display: flex; align-items: center; gap: 4px; }
+  nav.main a, nav.main button.link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; text-decoration: none; color: var(--ink); font-weight: 500; background: none; border: 0; cursor: pointer; position: relative; }
+  nav.main a[aria-current="page"] { color: var(--green); background: var(--green-tint); }
+  nav.main .count { background: var(--red); color: #fff; font-size: 12px; line-height: 1; padding: 3px 6px; border-radius: 999px; }
+  nav.main .nav-icon { display: none; }
+  @media (max-width: 760px) {
+    body { padding-bottom: 68px; }
+    nav.main { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--surface); border-top: 1px solid var(--line); justify-content: space-around; height: 64px; padding: 0 4px; }
+    nav.main a, nav.main button.link { flex-direction: column; gap: 0; font-size: 12px; padding: 6px 4px; flex: 1; justify-content: center; }
+    nav.main .nav-icon { display: block; }
+    nav.main .btn { padding: 6px 8px; font-size: 12px; flex-direction: column; gap: 0; }
+    nav.main .count { position: absolute; top: 4px; right: calc(50% - 22px); }
+  }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; padding: 10px 16px; font-weight: 600; line-height: 1.3; border: 1px solid transparent; cursor: pointer; text-decoration: none; }
+  .btn-primary { background: var(--green); color: var(--on-green); }
+  .btn-brass { background: var(--brass); color: #1D1606; }
+  .btn-ghost { background: var(--surface); border-color: var(--line); color: var(--ink); }
+  .btn-danger { background: var(--surface); border-color: var(--red); color: var(--red); }
+  .btn-sm { padding: 6px 12px; font-size: 14px; border-radius: 8px; }
+  .btn[disabled] { opacity: .5; cursor: not-allowed; }
+  .linkish { background: none; border: 0; padding: 0; color: var(--green); text-decoration: underline; cursor: pointer; }
+
+  /* Forms */
+  label.f { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .hint { font-size: 13px; color: var(--muted); }
+  .err { font-size: 13px; color: var(--red); margin-top: 4px; }
+  input[type="text"], input[type="number"], input[type="tel"], input[type="password"], input[type="date"], select, textarea {
+    width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; min-height: 44px;
+  }
+  textarea { min-height: 96px; resize: vertical; }
+  input[aria-invalid="true"], select[aria-invalid="true"] { border-color: var(--red); }
+  .field { margin-bottom: 16px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 520px) { .row3 { grid-template-columns: 1fr 1fr; } }
+  .checks { display: flex; flex-wrap: wrap; gap: 8px; }
+  .check { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; background: var(--surface); cursor: pointer; font-size: 14px; }
+  .check input { accent-color: var(--green); }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pills button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 14px; cursor: pointer; min-height: 36px; }
+  .pills button[aria-pressed="true"] { background: var(--green); color: var(--on-green); border-color: var(--green); }
+
+  /* Placeholder photo tile */
+  .tile { position: relative; background: hsl(var(--h) var(--tile-s) var(--tile-l)); color: hsl(var(--h) 30% var(--tile-ink-l)); display: grid; place-items: center; overflow: hidden; border-radius: 10px; aspect-ratio: 4 / 3; }
+  .tile svg { width: 46%; max-width: 160px; height: auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .tile .tag { z-index: 1; }
+  .tile .tag { position: absolute; left: 8px; bottom: 8px; font-size: 12px; background: var(--surface); color: var(--muted); padding: 1px 8px; border-radius: 999px; }
+
+  /* Receipt: the signature element */
+  .receipt { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .receipt h3 { font-size: 16px; margin-bottom: 8px; }
+  .r-row { display: flex; align-items: baseline; gap: 8px; font-size: 15px; }
+  .r-row + .r-row { margin-top: 4px; }
+  .r-row .dots { flex: 1; border-bottom: 2px dotted var(--line); transform: translateY(-5px); min-width: 16px; }
+  .r-row .amt { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .r-row .amt.na { color: var(--muted); font-weight: 400; }
+  .r-total { margin-top: 10px; padding-top: 8px; border-top: 4px double var(--brass); display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .r-total .lbl { font-weight: 600; }
+  .r-total .amt { font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 1.2; }
+  .r-note { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .r-once { margin-top: 12px; background: var(--brass-tint); border-radius: 10px; padding: 8px 12px; }
+  .r-once .r-head { font-size: 13px; color: var(--muted); margin-bottom: 2px; }
+
+  /* Home */
+  .hero { display: grid; gap: 28px; padding: 32px 0 24px; align-items: start; }
+  @media (min-width: 900px) { .hero { grid-template-columns: 1.25fr .75fr; padding: 56px 0 40px; gap: 48px; } }
+  .hero h1 { max-width: 16ch; }
+  .hero .sub { font-size: 18px; color: var(--muted); margin: 12px 0 24px; max-width: 46ch; }
+  .search-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: grid; gap: 12px; }
+  @media (min-width: 640px) { .search-card { grid-template-columns: 1.4fr 1fr 1fr auto; align-items: end; } }
+  .search-card .field { margin: 0; }
+  .hero-aside .cap { font-size: 14px; color: var(--muted); margin: 10px 4px 0; }
+  .hero-aside .receipt { border-color: var(--brass); }
+  .section { padding: 28px 0; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; counter-reset: s; }
+  @media (min-width: 760px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+  .steps li { counter-increment: s; border-top: 2px solid var(--green); padding-top: 12px; }
+  .steps li::before { content: counter(s, bengali); font-family: var(--display); font-weight: 700; font-size: 26px; color: var(--green); display: block; line-height: 1.2; }
+  :root[lang="en"] .steps li::before, html[lang="en"] .steps li::before { content: counter(s); }
+  .steps h3 { font-size: 17px; margin: 4px 0; }
+  .steps p { color: var(--muted); margin: 0; }
+  .safety { display: flex; gap: 16px; align-items: flex-start; background: var(--green-tint); border-radius: 14px; padding: 16px 18px; }
+  .safety svg { flex: none; color: var(--green); margin-top: 4px; }
+  .safety h3 { font-size: 17px; margin-bottom: 4px; }
+  .safety p { margin: 0; }
+
+  /* Cards */
+  .cards { display: grid; gap: 16px; }
+  .cards.grid3 { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  /* Home page: 4 recent homes as 1 / 2x2 / 4 across, so no row is left with a lone card. */
+  .cards.grid4 { grid-template-columns: 1fr; }
+  @media (min-width: 600px) { .cards.grid4 { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1100px) { .cards.grid4 { grid-template-columns: repeat(4, 1fr); } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: grid; }
+  .card .card-photo { display: block; }
+  .card .tile { border-radius: 0; }
+  .card-body { padding: 14px 16px 16px; display: grid; gap: 6px; align-content: start; }
+  .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .fresh { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+  .fresh::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  .fresh.old::before { background: var(--brass); }
+  .card h3 { font-size: 17px; }
+  .card h3 a { color: inherit; text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .card .area { color: var(--muted); font-size: 14px; margin: 0; }
+  .facts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; }
+  .card-cost { margin-top: 6px; padding-top: 8px; border-top: 4px double var(--brass); }
+  .card-cost .row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .card-cost .lbl { font-size: 14px; font-weight: 600; }
+  .card-cost .amt { font-family: var(--display); font-weight: 700; font-size: 24px; line-height: 1.25; }
+  .card-cost .split { font-size: 13px; color: var(--muted); }
+  .save-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 10px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; flex: none; }
+  .card-top .fresh { min-width: 0; line-height: 1.4; }
+  .save-btn[aria-pressed="true"] { color: var(--brass); border-color: var(--brass); }
+  @media (min-width: 640px) { .cards.list .card { grid-template-columns: 260px 1fr; } .cards.list .card .tile { height: 100%; aspect-ratio: auto; min-height: 200px; } }
+
+  /* Results */
+  .results { display: grid; gap: 24px; padding: 24px 0 40px; }
+  @media (min-width: 861px) { .results { grid-template-columns: 280px 1fr; align-items: start; } }
+  .filters { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .filters h2 { font-size: 18px; margin-bottom: 12px; }
+  .filters .field { margin-bottom: 14px; }
+  .filters .sheet-actions { display: none; }
+  @media (min-width: 861px) { .filters { position: sticky; top: 80px; max-height: calc(100vh - 96px); overflow: auto; } }
+  @media (max-width: 860px) {
+    .filters { display: none; position: fixed; inset: auto 0 0 0; z-index: 60; max-height: 86vh; overflow: auto; border-radius: 18px 18px 0 0; box-shadow: 0 -8px 30px rgba(10, 30, 25, .25); padding-bottom: 88px; }
+    body.filters-open .filters { display: block; }
+    body.filters-open::after { content: ""; position: fixed; inset: 0; background: rgba(10, 25, 20, .4); z-index: 55; }
+    .filters .sheet-actions { display: flex; gap: 8px; position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px; background: var(--surface); border-top: 1px solid var(--line); z-index: 61; }
+    .filters .sheet-actions .btn { flex: 1; }
+  }
+  .results-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .results-head .count { font-weight: 600; }
+  .results-head select { width: auto; min-height: 40px; }
+  .filter-btn { display: none; }
+  @media (max-width: 860px) { .filter-btn { display: inline-flex; } }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; background: var(--green-tint); color: var(--ink); border-radius: 999px; padding: 2px 4px 2px 12px; font-size: 14px; }
+  .chip button { border: 0; background: none; cursor: pointer; width: 26px; height: 26px; border-radius: 50%; font-size: 16px; line-height: 1; color: var(--muted); }
+  .empty { background: var(--surface); border: 1px dashed var(--line); border-radius: 14px; padding: 28px 20px; text-align: center; }
+  .empty h2 { font-size: 20px; margin-bottom: 6px; }
+  .empty .actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; }
+
+  /* Detail */
+  .crumb { padding: 16px 0 0; font-size: 14px; }
+  .detail { display: grid; gap: 20px; padding: 12px 0 40px; grid-template-columns: minmax(0, 1fr); grid-template-areas: "gal" "head" "side" "body"; }
+  .detail > * { min-width: 0; }
+  .head h1 { overflow-wrap: anywhere; }
+  @media (min-width: 900px) { .detail { grid-template-columns: minmax(0, 1fr) 360px; gap: 24px 32px; grid-template-areas: "gal side" "head side" "body side"; } .detail .side { position: sticky; top: 80px; align-self: start; } }
+  .detail .gal { grid-area: gal; }
+  .detail .head { grid-area: head; }
+  .detail .side { grid-area: side; display: grid; gap: 14px; }
+  .detail .body { grid-area: body; display: grid; gap: 24px; }
+  .gal .main .tile { border-radius: 14px; aspect-ratio: 16 / 10; max-height: 56vh; width: 100%; }
+  .thumbs { display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .thumbs button { border: 2px solid transparent; padding: 0; background: none; border-radius: 10px; cursor: pointer; flex: none; width: 84px; }
+  .thumbs button[aria-current="true"] { border-color: var(--brass); }
+  .thumbs .tile svg { width: 60%; }
+  .head .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .facts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .facts-grid div { background: var(--surface); padding: 10px 14px; }
+  .facts-grid dt { font-size: 13px; color: var(--muted); }
+  .facts-grid dd { margin: 0; font-weight: 600; }
+  .amen { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0; }
+  .amen li { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 2px 12px; font-size: 14px; }
+  .body h2 { font-size: 19px; margin-bottom: 8px; }
+  .advertiser { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; gap: 10px; }
+  .adv-who { display: flex; gap: 12px; align-items: center; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--green-tint); color: var(--green); display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 18px; flex: none; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; padding: 1px 10px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
+  .b-muted { background: var(--paper); color: var(--muted); border: 1px solid var(--line); }
+  .b-green { background: var(--green-tint); color: var(--green); }
+  .b-brass { background: var(--brass-tint); color: var(--ink); }
+  .b-red { background: var(--red-tint); color: var(--red); }
+  .phone-big { font-family: var(--display); font-size: 26px; font-weight: 700; letter-spacing: .02em; }
+  .warn-line { font-size: 13.5px; color: var(--muted); display: flex; gap: 6px; }
+  .side-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Post */
+  .post { padding: 24px 0 48px; display: grid; gap: 24px; }
+  @media (min-width: 960px) { .post { grid-template-columns: 1fr 340px; align-items: start; } .post .preview { position: sticky; top: 80px; } }
+  .stepper { list-style: none; padding: 0; margin: 16px 0 24px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .stepper li { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); padding: 4px 12px 4px 4px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+  .stepper .n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--paper); font-weight: 700; }
+  .stepper li[aria-current="step"] { color: var(--ink); border-color: var(--green); }
+  .stepper li[aria-current="step"] .n { background: var(--green); color: var(--on-green); }
+  .stepper li.done .n { background: var(--green-tint); color: var(--green); }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+  .panel h2 { font-size: 20px; margin-bottom: 14px; }
+  .form-nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
+  .other-row { display: grid; grid-template-columns: 1fr 120px 130px 40px; gap: 8px; align-items: center; margin-bottom: 8px; }
+  @media (max-width: 560px) { .other-row { grid-template-columns: 1fr 1fr; } }
+  .icon-btn { width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: 18px; line-height: 1; }
+  .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin: 14px 0; }
+  .photo-item { display: grid; gap: 6px; }
+  .photo-item .ops { display: flex; gap: 4px; justify-content: space-between; }
+  .photo-item .ops button { flex: 1; height: 32px; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; cursor: pointer; font-size: 13px; }
+  .add-tile { border: 2px dashed var(--line); border-radius: 10px; aspect-ratio: 4 / 3; display: grid; place-items: center; background: none; cursor: pointer; color: var(--green); font-weight: 600; }
+  .add-tile:hover { border-color: var(--green); }
+  .uploading { aspect-ratio: 4 / 3; border-radius: 10px; background: var(--paper); border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; color: var(--muted); }
+  .success { text-align: center; padding: 40px 20px; }
+  .success .mark { width: 64px; height: 64px; border-radius: 50%; background: var(--green-tint); color: var(--green); display: grid; place-items: center; margin: 0 auto 16px; }
+
+  /* Dashboard */
+  .dash { padding: 24px 0 48px; }
+  .dash-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .alerts { display: grid; gap: 10px; margin-bottom: 24px; }
+  .alert { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; border-radius: 12px; padding: 12px 16px; border: 1px solid; }
+  .alert p { margin: 0; flex: 1 1 280px; }
+  .alert.brass { background: var(--brass-tint); border-color: var(--brass); }
+  .alert.red { background: var(--red-tint); border-color: var(--red); }
+  .alert .acts { display: flex; gap: 8px; }
+  .lrow { display: grid; grid-template-columns: 96px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+  .lrow + .lrow { margin-top: 10px; }
+  .lrow .tile svg { width: 60%; }
+  .lrow h3 { font-size: 16px; }
+  .lrow .sub { font-size: 13.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 4px 0 8px; }
+  .lrow .acts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .reason { font-size: 14px; background: var(--paper); border-left: 3px solid var(--red); padding: 6px 10px; border-radius: 0 8px 8px 0; margin: 4px 0 8px; }
+
+  /* Admin */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-bottom: 28px; }
+  .stats div { background: var(--surface); padding: 12px 16px; }
+  .stats .v { font-family: var(--display); font-size: 26px; font-weight: 700; line-height: 1.3; }
+  .stats .k { font-size: 13.5px; color: var(--muted); }
+  .stats .v.red { color: var(--red); }
+  .qcard { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 14px; }
+  .qcard + .qcard { margin-top: 12px; }
+  @media (min-width: 860px) { .qcard { grid-template-columns: 1fr 300px; } }
+  .qcard .mini-tiles { display: flex; gap: 6px; margin: 8px 0; }
+  .qcard .mini-tiles .tile { width: 72px; }
+  .qcard .mini-tiles .tile svg { width: 60%; }
+  .qcard .acts { display: flex; flex-wrap: wrap; gap: 8px; grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 12px; }
+  .admin-cols { display: grid; gap: 32px; }
+  .rep { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .rep + .rep { margin-top: 10px; }
+  .rep .top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+  .rep blockquote { margin: 8px 0; font-size: 14.5px; color: var(--ink); background: var(--paper); padding: 8px 12px; border-radius: 8px; }
+  .rep .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Dialog, toast, footer */
+  dialog { border: 0; border-radius: 16px; padding: 0; width: min(480px, calc(100vw - 32px)); background: var(--surface); color: var(--ink); }
+  dialog::backdrop { background: rgba(10, 25, 20, .45); }
+  .dlg { padding: 20px; }
+  .dlg h2 { font-size: 20px; margin-bottom: 12px; }
+  .dlg .acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+  .radio-list { display: grid; gap: 6px; margin-bottom: 12px; }
+  .radio-list label { display: flex; gap: 10px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+  .radio-list input { accent-color: var(--green); }
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 10px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 100; max-width: calc(100vw - 32px); font-size: 15px; }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+  @media (max-width: 760px) { #toast { bottom: 84px; } }
+  footer.site { border-top: 1px solid var(--line); padding: 24px 0 32px; color: var(--muted); font-size: 14px; }
+  footer.site ul { list-style: none; padding: 0; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  footer.site a { color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<dialog id="dlg" aria-labelledby="dlg-title"></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<noscript><p style="padding:16px">This prototype needs JavaScript.</p></noscript>
+
+<script>
+/* ---------- Text (Bangla first, English second) ---------- */
+const T = {
+  bn: {
+    proto_note: 'প্রোটোটাইপ: সব বিজ্ঞাপন, নাম ও নম্বর নমুনা।', view_as: 'যেভাবে দেখবেন', view_tenant: 'ভাড়াটিয়া', view_owner: 'মালিক', view_admin: 'মডারেটর',
+    brand: 'বাসা চাই', lang_switch: 'English', nav_find: 'বাসা খুঁজুন', nav_saved: 'সংরক্ষিত', nav_post: 'বিজ্ঞাপন দিন', nav_dash: 'আমার বিজ্ঞাপন', nav_admin: 'মডারেশন', nav_signin: 'সাইন ইন',
+    hero_title: 'বাসা খুঁজুন। মালিকের সাথে সরাসরি কথা বলুন।', hero_sub: 'ধামরাইয়ের ভাড়া বাসা। ভাড়া, সার্ভিস চার্জ আর অগ্রিম প্রতিটি আলাদা করে লেখা।',
+    hero_cap: 'প্রতিটি বিজ্ঞাপনে খরচ এভাবে ভেঙে দেখানো হয়, যাতে আসল মাসিক খরচ আগেই জানেন।', example: 'উদাহরণ',
+    f_area: 'এলাকা', all_dhamrai: 'পুরো ধামরাই', f_min: 'সর্বনিম্ন ভাড়া (৳)', f_max: 'সর্বোচ্চ ভাড়া (৳)', f_beds: 'শোবার ঘর', f_baths: 'বাথরুম', any: 'যেকোনো',
+    f_type: 'ধরন', type_flat: 'ফ্ল্যাট', type_house: 'আধাপাকা বাড়ি', f_furnish: 'আসবাব', furn_furnished: 'আসবাবসহ', furn_semi: 'আংশিক আসবাবসহ', furn_unfurnished: 'আসবাব ছাড়া',
+    f_occ: 'কাদের জন্য', occ_family: 'পরিবার', occ_bachelor: 'ব্যাচেলর', occ_students: 'শিক্ষার্থী', occ_any: 'যে কেউ',
+    f_avail: 'কবে উঠবেন', avail_now_f: 'এখনই', avail_month: 'এক মাসের মধ্যে', studio: 'স্টুডিও', search_btn: 'বাসা খুঁজুন',
+    recent_t: 'সম্প্রতি নিশ্চিত করা বাসা', see_all: 'সব বাসা দেখুন', how_t: 'যেভাবে কাজ করে',
+    how1_t: 'এলাকা ও বাজেট দিয়ে খুঁজুন', how1_d: 'পুরো ধামরাই বা নির্দিষ্ট এলাকা বেছে নিন।', how2_t: 'আসল মাসিক খরচ দেখুন', how2_d: 'ভাড়ার সাথে সার্ভিস চার্জ ও অন্যান্য বিল যোগ করে মোট দেখানো হয়।',
+    how3_t: 'মালিককে সরাসরি ফোন করুন', how3_d: 'কোনো দালাল ফি নেই। নম্বর দেখতে লগইন লাগে না।',
+    safety_t: 'টাকা দেওয়ার আগে বাসা নিজে দেখুন', safety_d: 'বাসা না দেখে অগ্রিম বা টোকেন মানি পাঠাবেন না। কিছু সন্দেহজনক মনে হলে বিজ্ঞাপনটি রিপোর্ট করুন।',
+    total_month: 'মাসে মোট', rent: 'ভাড়া', service: 'সার্ভিস চার্জ', svc_short: 'সার্ভিস', advance: 'অগ্রিম', not_specified: 'উল্লেখ নেই', none: 'নেই', meter: 'মিটার অনুযায়ী',
+    one_time_head: 'ওঠার সময় একবার দিতে হবে', excl_note: 'মোটের মধ্যে {x} ধরা হয়নি।', split_more: 'আরও {n}টি বিল', costs_t: 'খরচের হিসাব',
+    confirmed: '{t} নিশ্চিত করা', avail_now: 'এখনই ওঠা যাবে', avail_from: '{d} থেকে', beds_n: '{n} শোবার ঘর', baths_n: '{n} বাথরুম', sqft_n: '{n} বর্গফুট', floor_n: '{n} তলা', ground: 'নিচতলা',
+    homes_in: 'ভাড়া বাসা: {a}', results_n: '{n}টি বাসা পাওয়া গেছে', sort: 'সাজান', sort_confirmed: 'সম্প্রতি নিশ্চিত', sort_newest: 'নতুন বিজ্ঞাপন', sort_low: 'কম ভাড়া আগে', sort_high: 'বেশি ভাড়া আগে',
+    filters: 'ফিল্টার', clear_all: 'সব ফিল্টার মুছুন', show_results: 'ফলাফল দেখুন', remove_filter: '{x} ফিল্টার সরান', rent_range: 'ভাড়া {a} থেকে {b}', rent_min_chip: 'ভাড়া {a} বা বেশি', rent_max_chip: 'ভাড়া {b} পর্যন্ত',
+    empty_t: 'এই ফিল্টারে কোনো বাসা নেই', empty_d: 'একটি ফিল্টার বদলালে আরও বাসা দেখা যেতে পারে।', empty_max: 'সর্বোচ্চ ভাড়া সরান', empty_area: 'পুরো ধামরাই দেখুন', empty_beds: 'যেকোনো শোবার ঘর', empty_reset: 'সব ফিল্টার মুছুন',
+    view_details: 'বিস্তারিত দেখুন', save: 'সংরক্ষণ', saved: 'সংরক্ষিত', back: 'ফলাফলে ফিরুন', photo_n: 'ছবি {i}/{n}', sample_photo: 'নমুনা ছবি', show_photo: '{i} নম্বর ছবি দেখুন',
+    about_t: 'বাসার তথ্য', desc_t: 'বিবরণ', amen_t: 'সুবিধা', rules_t: 'মালিকের শর্ত', loc_t: 'অবস্থান', loc_d: 'সঠিক ঠিকানা মালিক ফোনে জানাবেন। এখানে শুধু এলাকা দেখানো হয়।',
+    k_type: 'ধরন', k_beds: 'শোবার ঘর', k_baths: 'বাথরুম', k_size: 'আয়তন', k_floor: 'তলা', k_furnish: 'আসবাব', k_occ: 'কাদের জন্য', k_avail: 'কবে থেকে',
+    advertiser: 'বিজ্ঞাপনদাতা', owner: 'মালিক', not_verified: 'নম্বর যাচাই করা হয়নি', show_number: 'নম্বর দেখুন', call: 'কল করুন',
+    pay_warn: 'বাসা দেখার আগে কোনো টাকা পাঠাবেন না।', report: 'বিজ্ঞাপন রিপোর্ট করুন', report_t: 'কেন রিপোর্ট করছেন?',
+    r_suspicious: 'সন্দেহজনক বা প্রতারণা', r_inaccurate: 'তথ্য ভুল', r_duplicate: 'একই বিজ্ঞাপন একাধিকবার', r_unavailable: 'বাসা আর খালি নেই', r_details: 'আর কিছু জানাতে চাইলে লিখুন (ঐচ্ছিক)',
+    send_report: 'রিপোর্ট পাঠান', pick_reason: 'একটি কারণ বেছে নিন', report_sent: 'রিপোর্ট পাঠানো হয়েছে। একজন মডারেটর এক কার্যদিবসের মধ্যে দেখবেন।', cancel: 'বাতিল',
+    saved_t: 'সংরক্ষিত বাসা', saved_empty: 'এখনও কোনো বাসা সংরক্ষণ করেননি। পছন্দের বাসায় "সংরক্ষণ" চাপুন।', toast_saved: 'সংরক্ষিত তালিকায় যোগ হয়েছে', toast_unsaved: 'সংরক্ষিত তালিকা থেকে সরানো হয়েছে',
+    signin_t: 'সাইন ইন', signin_why_save: 'বাসা সংরক্ষণ করতে সাইন ইন করুন।', signin_why_post: 'বিজ্ঞাপন দিতে সাইন ইন করুন।', phone: 'মোবাইল নম্বর', password: 'পাসওয়ার্ড',
+    signin_note: 'আপনার নম্বরে কোনো কোড পাঠানো হয় না। পাসওয়ার্ড ভুলে গেলে সাপোর্টে যোগাযোগ করুন।', signin_btn: 'সাইন ইন', phone_err: 'সঠিক বাংলাদেশি মোবাইল নম্বর দিন, যেমন ০১৭১২৩৪৫৬৭৮', pass_err: 'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে', signed_in: 'সাইন ইন হয়েছে',
+    post_t: 'বাসার বিজ্ঞাপন দিন', post_sub: 'বিজ্ঞাপন দেওয়া বিনামূল্যে। প্রকাশের আগে একজন মডারেটর প্রতিটি বিজ্ঞাপন দেখে নেন।',
+    step1: 'বাসার তথ্য', step2: 'খরচ', step3: 'ছবি', step4: 'দেখে জমা দিন',
+    l_title: 'শিরোনাম', ph_title: 'যেমন: ইসলামপুরে ২ শোবার ঘরের ফ্ল্যাট', l_desc: 'বিবরণ', ph_desc: 'বাসার আশেপাশে কী আছে, আলো-বাতাস কেমন, ইত্যাদি', l_address: 'পুরো ঠিকানা', address_hint: 'এটি প্রকাশ করা হবে না। ভাড়াটিয়া ফোন করলে আপনি জানাবেন।',
+    l_sqft: 'আয়তন (বর্গফুট, ঐচ্ছিক)', l_floor: 'তলা (ঐচ্ছিক)', l_avail: 'কবে থেকে ভাড়া দেবেন', l_avail_date: 'তারিখ', l_amen: 'সুবিধা', l_rules: 'শর্ত (ঐচ্ছিক)', ph_rules: 'যেমন: পরিবারকে অগ্রাধিকার',
+    l_rent: 'মাসিক ভাড়া (৳)', l_service: 'মাসিক সার্ভিস চার্জ (৳)', service_hint: 'না থাকলে ০ লিখুন।', l_advance: 'অগ্রিম (৳)', l_adv_none: 'অগ্রিমের পরিমাণ উল্লেখ করব না',
+    l_others: 'অন্য খরচ', others_hint: 'যেমন গ্যাস বিল বা ফেরতযোগ্য জামানত। পরিমাণ জানা না থাকলে ফাঁকা রাখুন।', other_label: 'খরচের নাম', other_amount: 'পরিমাণ (৳)', monthly: 'প্রতি মাসে', once: 'একবার', add_cost: 'খরচ যোগ করুন', remove: 'সরান',
+    photos_hint: 'কমপক্ষে ৩টি ছবি দিন, সর্বোচ্চ ২০টি। প্রতিটি ছবি থেকে লোকেশন তথ্য মুছে ফেলা হয়।', add_photo: 'ছবি যোগ করুন', uploading: 'আপলোড হচ্ছে...', photos_n: '{n}/২০টি ছবি', need_photos: 'জমা দিতে আরও {n}টি ছবি লাগবে',
+    move_left: 'আগে নিন', move_right: 'পরে নিন', cover: 'প্রথম ছবি', next: 'পরের ধাপ', prev: 'আগের ধাপ', submit: 'পর্যালোচনায় জমা দিন', required: 'এই তথ্যটি দিতে হবে', preview_t: 'ভাড়াটিয়ারা যেভাবে দেখবেন',
+    review_note: 'জমা দেওয়ার পর একজন মডারেটর সাধারণত এক কার্যদিবসের মধ্যে দেখবেন। ফলাফল "আমার বিজ্ঞাপন" পাতায় পাবেন।',
+    submitted_t: 'পর্যালোচনায় জমা হয়েছে', submitted_d: 'মডারেটর অনুমোদন দিলে বিজ্ঞাপনটি প্রকাশিত হবে। ফলাফল "আমার বিজ্ঞাপন" পাতায় দেখবেন।', go_dash: 'আমার বিজ্ঞাপন দেখুন', post_another: 'আরেকটি বিজ্ঞাপন দিন',
+    dash_t: 'আমার বিজ্ঞাপন', new_listing: 'নতুন বিজ্ঞাপন',
+    al_expiring: '"{x}" এর মেয়াদ {n} দিনে শেষ হবে। বাসাটি এখনও খালি থাকলে নিশ্চিত করুন।', al_expired: '"{x}" এর মেয়াদ শেষ, তাই খোঁজে দেখা যাচ্ছে না।', al_changes: '"{x}" এ মডারেটর পরিবর্তন চেয়েছেন।',
+    reconfirm: 'এখনও খালি আছে', renew: 'আবার চালু করুন', edit: 'সম্পাদনা', pause: 'সাময়িক বন্ধ', resume: 'আবার দেখান', mark_rented: 'ভাড়া হয়ে গেছে', archive: 'আর্কাইভ',
+    st_pending: 'পর্যালোচনায়', st_published: 'প্রকাশিত', st_changes: 'পরিবর্তন দরকার', st_rejected: 'বাতিল', st_paused: 'বন্ধ', st_rented: 'ভাড়া হয়েছে', st_expired: 'মেয়াদ শেষ', st_archived: 'আর্কাইভ',
+    days_left: 'মেয়াদ বাকি {n} দিন', views_n: '{n} বার দেখা হয়েছে', reveals_n: '{n} জন নম্বর দেখেছেন', mod_reason: 'মডারেটরের মন্তব্য', mod_review: 'সাধারণত এক কার্যদিবসের মধ্যে দেখা হয়',
+    t_reconfirmed: 'নিশ্চিত হয়েছে। আরও ৩০ দিন খোঁজে দেখা যাবে।', t_renewed: 'আবার চালু হয়েছে। ৩০ দিন খোঁজে দেখা যাবে।', t_paused: 'সাময়িক বন্ধ করা হয়েছে। খোঁজে দেখা যাবে না।', t_resumed: 'আবার খোঁজে দেখা যাচ্ছে।',
+    t_rented: 'ভাড়া হয়েছে হিসেবে চিহ্নিত। খোঁজ থেকে সরানো হয়েছে।', t_archived: 'আর্কাইভ করা হয়েছে।', no_listings: 'এখনও কোনো বিজ্ঞাপন নেই।',
+    st_draft: 'খসড়া', continue: 'চালিয়ে যান', save_changes: 'পরিবর্তন সংরক্ষণ করুন', t_saved_live: 'পরিবর্তন সংরক্ষণ হয়েছে। বিজ্ঞাপনটি প্রকাশিত আছে।',
+    create_account: 'নতুন অ্যাকাউন্ট খুলুন', name: 'আপনার নাম', phone_taken: 'এই নম্বরে আগেই অ্যাকাউন্ট আছে। সাইন ইন করুন।',
+    reveal_limited: 'আপনি সম্প্রতি অনেক নম্বর দেখেছেন। {minutes} মিনিট পরে আবার চেষ্টা করুন।',
+    photo_too_large: 'ছবি ১০ এমবি বা তার কম হতে হবে।', photo_type: 'JPEG, PNG বা WebP ছবি দিন।',
+    history: 'ইতিহাস', history_edit: 'প্রকাশিত অবস্থায় সম্পাদনা', issue_reset: 'পাসওয়ার্ড রিসেট লিংক দিন', reset_link: 'রিসেট লিংক',
+    new_password: 'নতুন পাসওয়ার্ড', set_password: 'পাসওয়ার্ড সেট করুন', reset_used: 'এই লিংকের মেয়াদ শেষ বা এটি আগেই ব্যবহার করা হয়েছে।',
+    admin_t: 'মডারেশন', s_pending: 'পর্যালোচনার অপেক্ষায়', s_live: 'প্রকাশিত বিজ্ঞাপন', s_reports: 'খোলা রিপোর্ট', s_overdue: 'এক কার্যদিবসের বেশি পুরনো',
+    queue_t: 'পর্যালোচনার তালিকা', reports_t: 'রিপোর্ট', submitted_ago: '{t} জমা', overdue: 'দেরি হচ্ছে', approve: 'অনুমোদন দিন', request_changes: 'পরিবর্তন চান', reject: 'বাতিল করুন',
+    reason_label: 'কারণ (মালিক এটি দেখবেন)', reason_err: 'কারণ লিখতে হবে', reason_t_changes: 'কী পরিবর্তন দরকার?', reason_t_reject: 'কেন বাতিল করছেন?', send: 'পাঠান',
+    t_approved: 'অনুমোদিত। বিজ্ঞাপনটি এখন প্রকাশিত।', t_changes: 'মালিককে পরিবর্তনের কথা জানানো হয়েছে।', t_rejected: 'বিজ্ঞাপন বাতিল করা হয়েছে।', queue_empty: 'পর্যালোচনার কিছু বাকি নেই।',
+    reported_ago: '{t} রিপোর্ট', hide_listing: 'বিজ্ঞাপন লুকান', dismiss: 'খারিজ করুন', t_hidden: 'বিজ্ঞাপনটি খোঁজ থেকে লুকানো হয়েছে।', t_dismissed: 'রিপোর্ট খারিজ করা হয়েছে।', reports_empty: 'কোনো খোলা রিপোর্ট নেই।', open_listing: 'বিজ্ঞাপন দেখুন', photos_count: '{n}টি ছবি',
+    f_about: 'আমাদের সম্পর্কে', f_how: 'যেভাবে কাজ করে', f_safety: 'নিরাপত্তা পরামর্শ', f_support: 'সাপোর্ট', f_terms: 'শর্তাবলি', f_privacy: 'গোপনীয়তা', f_line: 'বাসা চাই: ধামরাইয়ে পাইলট। বিজ্ঞাপন দেওয়া বিনামূল্যে।', f_photos: 'নমুনা ছবি: Unsplash। এগুলো আসল বিজ্ঞাপনের বাসার ছবি নয়।',
+    not_found: 'বিজ্ঞাপনটি আর পাওয়া যাচ্ছে না।', go_home: 'হোমে ফিরুন'
+  },
+  en: {
+    proto_note: 'Prototype: all listings, names and numbers are samples.', view_as: 'View as', view_tenant: 'Tenant', view_owner: 'Owner', view_admin: 'Moderator',
+    brand: 'বাসা চাই', lang_switch: 'বাংলা', nav_find: 'Find a home', nav_saved: 'Saved', nav_post: 'Post a property', nav_dash: 'My listings', nav_admin: 'Moderation', nav_signin: 'Sign in',
+    hero_title: 'Find a home. Talk to the owner directly.', hero_sub: 'Rental homes in Dhamrai. Rent, service charge and advance are each listed separately.',
+    hero_cap: 'Every listing breaks down its costs like this, so you know the real monthly cost up front.', example: 'Example',
+    f_area: 'Area', all_dhamrai: 'All of Dhamrai', f_min: 'Min rent (৳)', f_max: 'Max rent (৳)', f_beds: 'Bedrooms', f_baths: 'Bathrooms', any: 'Any',
+    f_type: 'Type', type_flat: 'Flat', type_house: 'Semi-pucca house', f_furnish: 'Furnishing', furn_furnished: 'Furnished', furn_semi: 'Semi-furnished', furn_unfurnished: 'Unfurnished',
+    f_occ: 'Who can rent', occ_family: 'Family', occ_bachelor: 'Bachelor', occ_students: 'Students', occ_any: 'Anyone',
+    f_avail: 'Move-in', avail_now_f: 'Now', avail_month: 'Within a month', studio: 'Studio', search_btn: 'Search homes',
+    recent_t: 'Recently confirmed homes', see_all: 'See all homes', how_t: 'How it works',
+    how1_t: 'Search by area and budget', how1_d: 'Pick all of Dhamrai or a specific area.', how2_t: 'See the real monthly cost', how2_d: 'Service charge and other bills are added to the rent to show the total.',
+    how3_t: 'Call the owner directly', how3_d: 'No broker fee. No login needed to see the number.',
+    safety_t: 'See the home before you pay', safety_d: 'Never send an advance or token money before visiting. If something feels wrong, report the listing.',
+    total_month: 'Total per month', rent: 'Rent', service: 'Service charge', svc_short: 'service', advance: 'Advance', not_specified: 'Not specified', none: 'None', meter: 'By meter',
+    one_time_head: 'Paid once when you move in', excl_note: 'The total does not include {x}.', split_more: '{n} more bill(s)', costs_t: 'Cost breakdown',
+    confirmed: 'Confirmed {t}', avail_now: 'Available now', avail_from: 'From {d}', beds_n: '{n} bed', baths_n: '{n} bath', sqft_n: '{n} sq ft', floor_n: 'Floor {n}', ground: 'Ground floor',
+    homes_in: 'Homes for rent: {a}', results_n: '{n} homes found', sort: 'Sort', sort_confirmed: 'Recently confirmed', sort_newest: 'Newest', sort_low: 'Rent: low to high', sort_high: 'Rent: high to low',
+    filters: 'Filters', clear_all: 'Clear all filters', show_results: 'Show results', remove_filter: 'Remove {x} filter', rent_range: 'Rent {a} to {b}', rent_min_chip: 'Rent {a} or more', rent_max_chip: 'Rent up to {b}',
+    empty_t: 'No homes match these filters', empty_d: 'Changing one filter may show more homes.', empty_max: 'Remove max rent', empty_area: 'Search all of Dhamrai', empty_beds: 'Any number of bedrooms', empty_reset: 'Clear all filters',
+    view_details: 'View details', save: 'Save', saved: 'Saved', back: 'Back to results', photo_n: 'Photo {i} of {n}', sample_photo: 'Sample photo', show_photo: 'Show photo {i}',
+    about_t: 'About the home', desc_t: 'Description', amen_t: 'Amenities', rules_t: "Owner's rules", loc_t: 'Location', loc_d: 'The owner shares the exact address by phone. Only the area is shown here.',
+    k_type: 'Type', k_beds: 'Bedrooms', k_baths: 'Bathrooms', k_size: 'Size', k_floor: 'Floor', k_furnish: 'Furnishing', k_occ: 'Who can rent', k_avail: 'Available',
+    advertiser: 'Advertiser', owner: 'Owner', not_verified: 'Number not verified', show_number: 'Show number', call: 'Call',
+    pay_warn: "Don't send any money before you visit.", report: 'Report this listing', report_t: 'Why are you reporting this?',
+    r_suspicious: 'Suspicious or a scam', r_inaccurate: 'Information is wrong', r_duplicate: 'Posted more than once', r_unavailable: 'No longer available', r_details: 'Anything else? (optional)',
+    send_report: 'Send report', pick_reason: 'Choose a reason', report_sent: 'Report sent. A moderator will review it within one business day.', cancel: 'Cancel',
+    saved_t: 'Saved homes', saved_empty: "You haven't saved any homes yet. Press Save on a home you like.", toast_saved: 'Added to saved homes', toast_unsaved: 'Removed from saved homes',
+    signin_t: 'Sign in', signin_why_save: 'Sign in to save homes.', signin_why_post: 'Sign in to post a property.', phone: 'Mobile number', password: 'Password',
+    signin_note: "We don't send codes to your phone. If you forget your password, contact support.", signin_btn: 'Sign in', phone_err: 'Enter a valid Bangladeshi mobile number, like 01712345678', pass_err: 'Password must be at least 8 characters', signed_in: 'Signed in',
+    post_t: 'Post a property', post_sub: 'Posting is free. A moderator reviews every listing before it goes live.',
+    step1: 'Home details', step2: 'Costs', step3: 'Photos', step4: 'Review and submit',
+    l_title: 'Title', ph_title: 'e.g. 2-bedroom flat in Islampur', l_desc: 'Description', ph_desc: "What's nearby, light and air, and so on", l_address: 'Full address', address_hint: "This isn't shown publicly. You share it when a tenant calls.",
+    l_sqft: 'Size (sq ft, optional)', l_floor: 'Floor (optional)', l_avail: 'Available from', l_avail_date: 'Date', l_amen: 'Amenities', l_rules: 'Rules (optional)', ph_rules: 'e.g. Families preferred',
+    l_rent: 'Monthly rent (৳)', l_service: 'Monthly service charge (৳)', service_hint: 'Enter 0 if there is none.', l_advance: 'Advance (৳)', l_adv_none: "Don't state an advance amount",
+    l_others: 'Other costs', others_hint: 'Such as a gas bill or a refundable deposit. Leave the amount blank if it varies.', other_label: 'Cost name', other_amount: 'Amount (৳)', monthly: 'Monthly', once: 'One-time', add_cost: 'Add a cost', remove: 'Remove',
+    photos_hint: 'Add at least 3 photos, up to 20. Location data is removed from every photo.', add_photo: 'Add photo', uploading: 'Uploading...', photos_n: '{n} of 20 photos', need_photos: 'Add {n} more photo(s) to submit',
+    move_left: 'Move earlier', move_right: 'Move later', cover: 'First photo', next: 'Next', prev: 'Back', submit: 'Submit for review', required: 'This field is required', preview_t: 'What tenants will see',
+    review_note: "A moderator usually reviews within one business day. You'll see the result on My listings.",
+    submitted_t: 'Submitted for review', submitted_d: "Your listing goes live once a moderator approves it. You'll see the result on My listings.", go_dash: 'Go to My listings', post_another: 'Post another property',
+    dash_t: 'My listings', new_listing: 'New listing',
+    al_expiring: '"{x}" expires in {n} days. Confirm it is still available.', al_expired: '"{x}" has expired, so it is hidden from search.', al_changes: 'A moderator asked for changes to "{x}".',
+    reconfirm: 'Still available', renew: 'Renew', edit: 'Edit', pause: 'Pause', resume: 'Show again', mark_rented: 'Mark as rented', archive: 'Archive',
+    st_pending: 'In review', st_published: 'Live', st_changes: 'Changes needed', st_rejected: 'Rejected', st_paused: 'Paused', st_rented: 'Rented', st_expired: 'Expired', st_archived: 'Archived',
+    days_left: '{n} days left', views_n: '{n} views', reveals_n: '{n} number views', mod_reason: "Moderator's note", mod_review: 'Usually reviewed within one business day',
+    t_reconfirmed: 'Confirmed. It stays in search for another 30 days.', t_renewed: 'Renewed. It is in search for 30 days.', t_paused: 'Paused. It is hidden from search.', t_resumed: 'It is back in search.',
+    t_rented: 'Marked as rented and removed from search.', t_archived: 'Archived.', no_listings: 'No listings yet.',
+    st_draft: 'Draft', continue: 'Continue', save_changes: 'Save changes', t_saved_live: 'Changes saved. The listing is still live.',
+    create_account: 'Create an account', name: 'Your name', phone_taken: 'This number already has an account. Sign in instead.',
+    reveal_limited: 'You have viewed many numbers recently. Try again in {minutes} minutes.',
+    photo_too_large: 'Photos must be 10 MB or smaller.', photo_type: 'Use a JPEG, PNG or WebP photo.',
+    history: 'History', history_edit: 'Edited while live', issue_reset: 'Issue password reset', reset_link: 'Reset link',
+    new_password: 'New password', set_password: 'Set password', reset_used: 'This link has expired or was already used.',
+    admin_t: 'Moderation', s_pending: 'Waiting for review', s_live: 'Live listings', s_reports: 'Open reports', s_overdue: 'Older than one business day',
+    queue_t: 'Review queue', reports_t: 'Reports', submitted_ago: 'Submitted {t}', overdue: 'Overdue', approve: 'Approve', request_changes: 'Request changes', reject: 'Reject',
+    reason_label: 'Reason (the owner will see this)', reason_err: 'A reason is required', reason_t_changes: 'What needs to change?', reason_t_reject: 'Why are you rejecting this?', send: 'Send',
+    t_approved: 'Approved. The listing is now live.', t_changes: 'The owner has been asked for changes.', t_rejected: 'Listing rejected.', queue_empty: 'Nothing left to review.',
+    reported_ago: 'Reported {t}', hide_listing: 'Hide listing', dismiss: 'Dismiss', t_hidden: 'The listing is hidden from search.', t_dismissed: 'Report dismissed.', reports_empty: 'No open reports.', open_listing: 'Open listing', photos_count: '{n} photos',
+    f_about: 'About us', f_how: 'How it works', f_safety: 'Safety tips', f_support: 'Support', f_terms: 'Terms', f_privacy: 'Privacy', f_line: 'BasaChai: piloting in Dhamrai. Posting is free.', f_photos: 'Demo photos from Unsplash. They do not show the actual listed homes.',
+    not_found: 'This listing is no longer available.', go_home: 'Back to home'
+  }
+};
+
+/* Sample areas in Dhamrai, supplied for the prototype. */
+const AREAS = {
+  amin: { bn: 'আমিন মডেল টাউন', en: 'Amin Model Town' },
+  barat: { bn: 'বরাত নগর', en: 'Barat Nagor' },
+  dokkhin: { bn: 'দক্ষিণ পাড়া', en: 'Dokkhin Para' },
+  bazar: { bn: 'ধামরাই বাজার', en: 'Dhamrai Bazar' },
+  islampur: { bn: 'ইসলামপুর', en: 'Islampur' }
+};
+const AMEN = {
+  lift: { bn: 'লিফট', en: 'Lift' }, parking: { bn: 'পার্কিং', en: 'Parking' }, generator: { bn: 'জেনারেটর', en: 'Generator' },
+  gas: { bn: 'গ্যাস সংযোগ', en: 'Gas line' }, balcony: { bn: 'বারান্দা', en: 'Balcony' }, security: { bn: 'নিরাপত্তা প্রহরী', en: 'Security guard' },
+  roof: { bn: 'ছাদ ব্যবহার', en: 'Rooftop access' }, yard: { bn: 'উঠান', en: 'Courtyard' }
+};
+const PEOPLE = {
+  me: { bn: 'নাসরিন আক্তার', en: 'Nasrin Akter', phone: '01700000101' },
+  o2: { bn: 'আব্দুল কাদের', en: 'Abdul Kader', phone: '01800000202' },
+  o3: { bn: 'শাহানা পারভীন', en: 'Shahana Parvin', phone: '01900000303' },
+  o4: { bn: 'রফিকুল ইসলাম', en: 'Rafiqul Islam', phone: '01600000404' },
+  o5: { bn: 'জাহিদ হোসেন', en: 'Zahid Hossain', phone: '01500000505' },
+  o6: { bn: 'মমতাজ বেগম', en: 'Momtaz Begum', phone: '01300000606' },
+  o7: { bn: 'সাইফুল আলম', en: 'Saiful Alam', phone: '01400000707' },
+  o8: { bn: 'হাবিবুর রহমান', en: 'Habibur Rahman', phone: '01700000808' },
+  o9: { bn: 'রোকসানা খাতুন', en: 'Rokshana Khatun', phone: '01800000909' },
+  o10: { bn: 'মো. আনোয়ার হোসেন', en: 'Md. Anwar Hossain', phone: '01900001010' }
+};
+const GAS = { label: { bn: 'গ্যাস বিল (ডাবল চুলা)', en: 'Gas bill (double burner)' }, amount: 1080, rec: true };
+const ELEC = { label: { bn: 'বিদ্যুৎ বিল', en: 'Electricity bill' }, amount: null, rec: true };
+const KEY = { label: { bn: 'চাবির জামানত (ফেরতযোগ্য)', en: 'Key deposit (refundable)' }, amount: 1000, rec: false };
+const BACHELOR_RULE = { bn: 'শুধু চাকরিজীবী ব্যাচেলর।', en: 'Working bachelors only.' };
+const STUDENT_RULE = { bn: 'শিক্ষার্থীদের জন্য। ধূমপান নিষেধ।', en: 'For students. No smoking.' };
+const FAMILY_RULE = { bn: 'পরিবারকে অগ্রাধিকার দেওয়া হবে। রাত ১১টার পর মূল গেট বন্ধ থাকে।', en: 'Families preferred. The main gate closes at 11 pm.' };
+
+const LISTINGS = [
+  /* Amin Model Town */
+  { id: 'A1', owner: 'o2', type: 'flat', area: 'amin', title: { bn: 'আমিন মডেল টাউনে ৩ শোবার ঘরের ফ্ল্যাট', en: '3-bedroom flat in Amin Model Town' },
+    rent: 15000, service: 1500, advance: 30000, others: [GAS], beds: 3, baths: 2, sqft: 1250, floor: 3, furnish: 'semi', occ: 'family', availIn: 0,
+    amen: ['parking', 'generator', 'gas', 'security', 'balcony'], rules: FAMILY_RULE,
+    desc: { bn: 'পরিকল্পিত আবাসিক এলাকা, চওড়া রাস্তা। ২৪ ঘণ্টা নিরাপত্তা প্রহরী।', en: 'Planned residential area with wide roads. Security guard around the clock.' },
+    status: 'published', confirmedAgo: 2, createdAgo: 12, photos: 8, hue: 30, views: 142, reveals: 15 },
+  { id: 'A2', owner: 'o5', type: 'flat', area: 'amin', title: { bn: 'আমিন মডেল টাউনে আসবাবসহ ২ শোবার ঘর', en: 'Furnished 2-bedroom in Amin Model Town' },
+    rent: 18000, service: 2000, advance: 36000, others: [], beds: 2, baths: 2, sqft: 950, floor: 4, furnish: 'furnished', occ: 'any', availIn: 7,
+    amen: ['lift', 'generator', 'gas', 'security'], rules: null,
+    desc: { bn: 'সম্পূর্ণ আসবাবসহ: খাট, সোফা, ফ্রিজ ও ওয়াশিং মেশিন। লিফট আছে।', en: 'Fully furnished: beds, sofa, fridge and washing machine. Building has a lift.' },
+    status: 'published', confirmedAgo: 5, createdAgo: 5, photos: 7, hue: 200, views: 76, reveals: 8 },
+  { id: 'A3', owner: 'o8', type: 'flat', area: 'amin', title: { bn: 'আমিন মডেল টাউনে শিক্ষার্থীদের জন্য স্টুডিও', en: 'Studio for students in Amin Model Town' },
+    rent: 8500, service: 800, advance: 17000, others: [], beds: 0, baths: 1, sqft: 400, floor: 2, furnish: 'semi', occ: 'students', availIn: 0,
+    amen: ['gas', 'security'], rules: STUDENT_RULE, desc: { bn: 'খাট ও পড়ার টেবিল আছে। শান্ত পরিবেশ।', en: 'Bed and study desk included. Quiet surroundings.' },
+    status: 'published', confirmedAgo: 9, createdAgo: 30, photos: 4, hue: 260, views: 98, reveals: 12 },
+
+  /* Barat Nagor */
+  { id: 'B1', owner: 'o3', type: 'house', area: 'barat', title: { bn: 'বরাত নগরে আধাপাকা বাড়ি, ২টি ঘর', en: 'Semi-pucca house with 2 rooms in Barat Nagor' },
+    rent: 6000, service: 0, advance: 12000, others: [ELEC], beds: 2, baths: 1, sqft: null, floor: 0, furnish: 'unfurnished', occ: 'family', availIn: 0,
+    amen: ['yard'], rules: null, desc: { bn: 'টিনের ছাদ, পাকা মেঝে। নিজস্ব উঠান ও টিউবওয়েল।', en: 'Tin roof, concrete floor. Private courtyard and tube well.' },
+    status: 'published', confirmedAgo: 1, createdAgo: 6, photos: 4, hue: 90, views: 51, reveals: 6 },
+  { id: 'B2', owner: 'o4', type: 'flat', area: 'barat', title: { bn: 'বরাত নগরে ২ শোবার ঘরের ফ্ল্যাট', en: '2-bedroom flat in Barat Nagor' },
+    rent: 9000, service: 600, advance: 18000, others: [GAS], beds: 2, baths: 1, sqft: 700, floor: 1, furnish: 'unfurnished', occ: 'any', availIn: 0,
+    amen: ['gas', 'balcony'], rules: null, desc: { bn: 'প্রধান সড়ক থেকে দুই মিনিট। দক্ষিণমুখী বারান্দা।', en: 'Two minutes from the main road. South-facing balcony.' },
+    status: 'published', confirmedAgo: 4, createdAgo: 18, photos: 5, hue: 150, views: 88, reveals: 9 },
+  { id: 'B3', owner: 'o9', type: 'flat', area: 'barat', title: { bn: 'বরাত নগরে ব্যাচেলরদের জন্য ১ শোবার ঘর', en: '1-bedroom for bachelors in Barat Nagor' },
+    rent: 4500, service: 0, advance: null, others: [ELEC], beds: 1, baths: 1, sqft: 300, floor: 1, furnish: 'unfurnished', occ: 'bachelor', availIn: 0,
+    amen: [], rules: BACHELOR_RULE, desc: { bn: 'আলাদা মিটার। কাছেই চায়ের দোকান ও মসজিদ।', en: 'Separate meter. Tea stall and mosque nearby.' },
+    status: 'published', confirmedAgo: 11, createdAgo: 40, photos: 3, hue: 10, views: 130, reveals: 19 },
+
+  /* Dokkhin Para */
+  { id: 'D1', owner: 'o2', type: 'house', area: 'dokkhin', title: { bn: 'দক্ষিণ পাড়ায় বাড়ির নিচতলা, ৩ শোবার ঘর', en: 'Ground floor of a house, 3 bedrooms, Dokkhin Para' },
+    rent: 13000, service: 0, advance: 26000, others: [], beds: 3, baths: 2, sqft: 1200, floor: 0, furnish: 'unfurnished', occ: 'family', availIn: 30,
+    amen: ['parking', 'roof', 'yard'], rules: null, desc: { bn: 'বড় উঠান ও গাড়ি রাখার জায়গা। পরিবারের জন্য উপযুক্ত।', en: 'Large courtyard and space for a car. Suits a family.' },
+    status: 'published', confirmedAgo: 7, createdAgo: 7, photos: 7, hue: 20, views: 47, reveals: 4 },
+  { id: 'D2', owner: 'o6', type: 'flat', area: 'dokkhin', title: { bn: 'দক্ষিণ পাড়ায় শিক্ষার্থীদের জন্য ২ শোবার ঘর', en: '2-bedroom for students in Dokkhin Para' },
+    rent: 7500, service: 500, advance: 15000, others: [], beds: 2, baths: 1, sqft: 620, floor: 5, furnish: 'unfurnished', occ: 'students', availIn: 0,
+    amen: ['roof'], rules: STUDENT_RULE, desc: { bn: 'পাঁচতলা, লিফট নেই। ছাদে বসার জায়গা।', en: 'Fifth floor, no lift. Seating area on the roof.' },
+    status: 'published', confirmedAgo: 12, createdAgo: 35, photos: 4, hue: 330, views: 115, reveals: 13 },
+  { id: 'D3', owner: 'o10', type: 'flat', area: 'dokkhin', title: { bn: 'দক্ষিণ পাড়ায় পার্কিংসহ ২ শোবার ঘরের ফ্ল্যাট', en: '2-bedroom flat with parking in Dokkhin Para' },
+    rent: 10500, service: 1200, advance: 21000, others: [GAS, KEY], beds: 2, baths: 1, sqft: 760, floor: 2, furnish: 'semi', occ: 'any', availIn: 0,
+    amen: ['parking', 'gas', 'balcony'], rules: null, desc: { bn: 'মোটরসাইকেল রাখার জায়গা আছে। দুই দিকে জানালা।', en: 'Space for a motorbike. Windows on two sides.' },
+    status: 'published', confirmedAgo: 3, createdAgo: 15, photos: 6, hue: 120, views: 97, reveals: 11 },
+
+  /* Dhamrai Bazar */
+  { id: 'Z1', owner: 'me', type: 'flat', area: 'bazar', title: { bn: 'ধামরাই বাজারে ২ শোবার ঘরের ফ্ল্যাট', en: '2-bedroom flat in Dhamrai Bazar' },
+    rent: 12000, service: 1000, advance: 24000, others: [GAS], beds: 2, baths: 2, sqft: 850, floor: 3, furnish: 'semi', occ: 'family', availIn: 0,
+    amen: ['gas', 'balcony', 'roof'], rules: FAMILY_RULE,
+    desc: { bn: 'বাজার ও বাসস্ট্যান্ড হাঁটা দূরত্বে। দক্ষিণমুখী বারান্দা, দিনে ভালো আলো আসে।', en: 'Market and bus stand within walking distance. South-facing balcony with good daylight.' },
+    status: 'published', confirmedAgo: 28, createdAgo: 58, photos: 6, hue: 160, views: 312, reveals: 24 },
+  { id: 'Z2', owner: 'o5', type: 'flat', area: 'bazar', title: { bn: 'ধামরাই বাজারে আসবাবসহ স্টুডিও', en: 'Furnished studio in Dhamrai Bazar' },
+    rent: 9000, service: 800, advance: 18000, others: [], beds: 0, baths: 1, sqft: 420, floor: 4, furnish: 'furnished', occ: 'students', availIn: 0,
+    amen: ['lift', 'gas', 'security'], rules: null, desc: { bn: 'খাট, টেবিল ও আলমারি আছে। কলেজের কাছে।', en: 'Bed, desk and wardrobe included. Close to the college.' },
+    status: 'published', confirmedAgo: 10, createdAgo: 25, photos: 5, hue: 280, views: 201, reveals: 31 },
+  { id: 'Z3', owner: 'o7', type: 'flat', area: 'bazar', title: { bn: 'ধামরাই বাজারে দোকানের ওপরে ১ শোবার ঘর', en: '1-bedroom above a shop in Dhamrai Bazar' },
+    rent: 6500, service: 300, advance: 13000, others: [], beds: 1, baths: 1, sqft: 450, floor: 2, furnish: 'unfurnished', occ: 'any', availIn: 0,
+    amen: ['gas'], rules: null, desc: { bn: 'বাজারের ঠিক ওপরে, দিনে কিছুটা কোলাহল। সব কিছু হাতের কাছে।', en: 'Right above the market, a little noisy by day. Everything within reach.' },
+    status: 'published', confirmedAgo: 6, createdAgo: 22, photos: 4, hue: 45, views: 84, reveals: 7 },
+
+  /* Islampur */
+  { id: 'I1', owner: 'o3', type: 'flat', area: 'islampur', title: { bn: 'ইসলামপুরে ৩ শোবার ঘরের নতুন ফ্ল্যাট', en: 'New 3-bedroom flat in Islampur' },
+    rent: 14000, service: 1000, advance: 28000, others: [], beds: 3, baths: 2, sqft: 1100, floor: 2, furnish: 'unfurnished', occ: 'family', availIn: 14,
+    amen: ['parking', 'gas', 'balcony', 'security'], rules: null, desc: { bn: 'নতুন ভবন, প্রশস্ত রান্নাঘর। স্কুল ও মাদ্রাসা কাছেই।', en: 'New building with a large kitchen. School and madrasa nearby.' },
+    status: 'published', confirmedAgo: 2, createdAgo: 2, photos: 8, hue: 60, views: 39, reveals: 5 },
+  { id: 'I2', owner: 'o8', type: 'house', area: 'islampur', title: { bn: 'ইসলামপুরে আধাপাকা বাড়ি, ৩টি ঘর', en: 'Semi-pucca house with 3 rooms in Islampur' },
+    rent: 8000, service: 0, advance: 16000, others: [ELEC], beds: 3, baths: 1, sqft: null, floor: 0, furnish: 'unfurnished', occ: 'family', availIn: 0,
+    amen: ['yard'], rules: null, desc: { bn: 'পাকা মেঝে, টিনের ছাদ। সামনে খোলা জায়গা।', en: 'Concrete floor, tin roof. Open space in front.' },
+    status: 'published', confirmedAgo: 8, createdAgo: 20, photos: 5, hue: 100, views: 66, reveals: 9 },
+  { id: 'I3', owner: 'o9', type: 'flat', area: 'islampur', title: { bn: 'ইসলামপুরে ২ শোবার ঘরের ফ্ল্যাট', en: '2-bedroom flat in Islampur' },
+    rent: 8500, service: 500, advance: null, others: [], beds: 2, baths: 1, sqft: 650, floor: 3, furnish: 'unfurnished', occ: 'any', availIn: 0,
+    amen: ['gas'], rules: null, desc: { bn: 'অগ্রিমের পরিমাণ আলোচনা সাপেক্ষে।', en: 'Advance amount is negotiable.' },
+    status: 'published', confirmedAgo: 14, createdAgo: 45, photos: 3, hue: 230, views: 102, reveals: 10 },
+
+  /* Owner (me): draft, expired, changes requested, in review, rented */
+  { id: 'M1', owner: 'me', type: 'flat', area: 'barat', title: { bn: 'বরাত নগরে ২ শোবার ঘরের ফ্ল্যাট', en: '2-bedroom flat in Barat Nagor' },
+    rent: 7500, service: 0, advance: null, others: [], beds: 2, baths: 1, sqft: null, floor: 1, furnish: 'unfurnished', occ: 'any', availIn: 0, amen: [], rules: null,
+    desc: { bn: '', en: '' }, status: 'draft', createdAgo: 2, photos: 0, imgs: [], hue: 110, views: 0, reveals: 0,
+    form: Object.assign(newDraft(), { title: 'বরাত নগরে ২ শোবার ঘরের ফ্ল্যাট', area: 'barat', beds: '2', floor: '1', rent: '7500' }), step: 2 },
+  { id: 'M2', owner: 'me', type: 'flat', area: 'islampur', title: { bn: 'ইসলামপুরে ১ শোবার ঘরের ফ্ল্যাট', en: '1-bedroom flat in Islampur' },
+    rent: 6500, service: 500, advance: 13000, others: [], beds: 1, baths: 1, sqft: 450, floor: 2, furnish: 'unfurnished', occ: 'any', availIn: 0, amen: ['gas'], rules: null,
+    desc: { bn: 'ছোট পরিবার বা দম্পতির জন্য।', en: 'Suits a small family or couple.' }, status: 'published', confirmedAgo: 33, createdAgo: 70, photos: 4, hue: 45, views: 180, reveals: 15 },
+  { id: 'M3', owner: 'me', type: 'flat', area: 'amin', title: { bn: 'আমিন মডেল টাউনে ৩ শোবার ঘরের ফ্ল্যাট', en: '3-bedroom flat in Amin Model Town' },
+    rent: 16000, service: 2000, advance: 32000, others: [], beds: 3, baths: 2, sqft: 1200, floor: 4, furnish: 'unfurnished', occ: 'family', availIn: 7, amen: ['lift', 'generator'], rules: null,
+    desc: { bn: 'লিফট ও জেনারেটর আছে।', en: 'Lift and generator.' }, status: 'changes', submittedHours: 30, photos: 3, hue: 190, views: 0, reveals: 0,
+    reason: { bn: 'রান্নাঘরের একটি ছবি যোগ করুন এবং সার্ভিস চার্জে কী কী আছে বিবরণে লিখুন।', en: 'Add a photo of the kitchen and list what the service charge covers in the description.' } },
+  { id: 'M4', owner: 'me', type: 'house', area: 'barat', title: { bn: 'বরাত নগরে আধাপাকা বাড়ি, ৩টি ঘর', en: 'Semi-pucca house with 3 rooms in Barat Nagor' },
+    rent: 8500, service: 0, advance: 17000, others: [], beds: 3, baths: 1, sqft: null, floor: 0, furnish: 'unfurnished', occ: 'family', availIn: 0, amen: ['yard'], rules: null,
+    desc: { bn: 'পাকা মেঝে, টিনের ছাদ। নিজস্ব টয়লেট।', en: 'Concrete floor, tin roof. Own toilet.' }, status: 'pending', submittedHours: 5, photos: 5, hue: 70, views: 0, reveals: 0 },
+  { id: 'M5', owner: 'me', type: 'flat', area: 'dokkhin', title: { bn: 'দক্ষিণ পাড়ায় ২ শোবার ঘরের ফ্ল্যাট', en: '2-bedroom flat in Dokkhin Para' },
+    rent: 9500, service: 800, advance: 19000, others: [], beds: 2, baths: 1, sqft: 700, floor: 1, furnish: 'unfurnished', occ: 'family', availIn: 0, amen: [], rules: null,
+    desc: { bn: '', en: '' }, status: 'rented', confirmedAgo: 15, createdAgo: 50, photos: 3, hue: 240, views: 260, reveals: 22 },
+
+  /* Waiting for moderation */
+  { id: 'P1', owner: 'o6', type: 'flat', area: 'bazar', title: { bn: 'ধামরাই বাজারের পাশে ২ শোবার ঘরের ফ্ল্যাট', en: '2-bedroom flat next to Dhamrai Bazar' },
+    rent: 9000, service: 700, advance: 18000, others: [], beds: 2, baths: 1, sqft: 700, floor: 1, furnish: 'unfurnished', occ: 'any', availIn: 5, amen: ['gas'], rules: null,
+    desc: { bn: 'বাজারের পাশে, দোতলা বাড়ির নিচতলা।', en: 'Next to the market, ground floor of a two-storey house.' }, status: 'pending', submittedHours: 30, photos: 4, hue: 300, views: 0, reveals: 0 },
+  { id: 'P2', owner: 'o10', type: 'flat', area: 'amin', title: { bn: 'আমিন মডেল টাউনে ১ শোবার ঘর', en: '1-bedroom in Amin Model Town' },
+    rent: 7000, service: 500, advance: null, others: [], beds: 1, baths: 1, sqft: null, floor: 1, furnish: 'unfurnished', occ: 'bachelor', availIn: 0, amen: [], rules: null,
+    desc: { bn: 'অল্প ভাড়া।', en: 'Low rent.' }, status: 'pending', submittedHours: 3, photos: 3, hue: 10, views: 0, reveals: 0 }
+];
+
+const REPORTS = [
+  { id: 'R1', listing: 'Z2', reason: 'suspicious', hours: 30, open: true, details: { bn: 'ফোনে বলছে বাসা দেখার আগে বিকাশে টোকেন মানি পাঠাতে।', en: 'On the phone they asked for token money by bKash before any visit.' } },
+  { id: 'R2', listing: 'I2', reason: 'unavailable', hours: 4, open: true, details: { bn: 'ফোন করে জানলাম বাসা ভাড়া হয়ে গেছে।', en: 'Called and was told it is already rented.' } }
+];
+
+/* ---------- State ---------- */
+const S = {
+  lang: 'bn', role: 'tenant', signedIn: false, saved: new Set(['A1']), revealed: new Set(),
+  gal: {}, filtersOpen: false, step: 1, errors: {}, submitted: false, uploading: false, pending: null,
+  draft: null, lastPath: '', editId: null, signup: false, signinWhy: '', revealCount: 0, revealBlocked: null
+};
+try { const l = localStorage.getItem('basachai-lang'); if (l === 'en' || l === 'bn') S.lang = l; } catch (e) { /* storage unavailable */ }
+function newDraft() {
+  return { title: '', type: 'flat', area: '', beds: '2', baths: '1', sqft: '', floor: '', furnish: 'unfurnished', occ: 'any', availNow: true, availDate: '', desc: '', address: '', amen: [], rules: '',
+    rent: '', service: '', advance: '', advNone: false, others: [], photos: [] };
+}
+S.draft = newDraft();
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const loc = o => (o ? (o[S.lang] || o.bn || '') : '');
+const L = o => esc(loc(o));
+function t(k, v) { let s = (T[S.lang][k] ?? T.bn[k] ?? k); if (v) for (const [a, b] of Object.entries(v)) s = s.split('{' + a + '}').join(b); return s; }
+const nf = () => new Intl.NumberFormat(S.lang === 'bn' ? 'bn-BD' : 'en-IN');
+const num = n => nf().format(n);
+const money = n => '৳' + num(n);
+const digitsLocal = s => S.lang === 'bn' ? String(s).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]) : String(s);
+const toLatin = s => String(s).replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d));
+function ago(v, unit) { return new Intl.RelativeTimeFormat(S.lang === 'bn' ? 'bn' : 'en', { numeric: 'auto' }).format(-v, unit); }
+function agoHours(h) { return h >= 24 ? ago(Math.floor(h / 24), 'day') : ago(Math.max(1, Math.round(h)), 'hour'); }
+function dateIn(days) { const d = new Date(); d.setDate(d.getDate() + days); return new Intl.DateTimeFormat(S.lang === 'bn' ? 'bn-BD' : 'en-GB', { day: 'numeric', month: 'long' }).format(d); }
+function phoneFmt(p) { return digitsLocal(p.slice(0, 5) + '-' + p.slice(5)); }
+const byId = id => LISTINGS.find(l => l.id === id);
+const expiresIn = l => 30 - (l.confirmedAgo ?? 0);
+function eff(l) { if ((l.status === 'published' || l.status === 'paused') && expiresIn(l) <= 0) return 'expired'; return l.status; }
+const isPublic = l => eff(l) === 'published' && !l.hidden;
+const recurringKnown = l => l.others.filter(o => o.rec && o.amount != null);
+const monthly = l => l.rent + (l.service || 0) + recurringKnown(l).reduce((a, o) => a + o.amount, 0);
+const attention = () => LISTINGS.filter(l => l.owner === 'me' && (eff(l) === 'expired' || eff(l) === 'changes' || (eff(l) === 'published' && expiresIn(l) <= 3)));
+
+function toast(msg) { const el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 3200); }
+
+/* ---------- Icons ---------- */
+const ICON = {
+  roof: '<svg width="26" height="20" viewBox="0 0 26 20" aria-hidden="true"><path d="M2 11 L13 2 L24 11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v8h14v-8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>',
+  search: '<svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  heart: '<svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+  plus: '<svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  list: '<svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  shield: '<svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+  user: '<svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  eye: '<svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  check: '<svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+};
+const ROOM = '<svg viewBox="0 0 120 80" aria-hidden="true"><rect x="38" y="12" width="44" height="34" rx="2"/><path d="M60 12v34M38 29h44"/><path d="M0 62h120"/><path d="M14 62V40h14v22"/><path d="M92 62v-9h18v9"/></svg>';
+/* Demo photos: free-licence images from Unsplash (images.unsplash.com). The drawn room stays underneath as a placeholder while loading or offline. */
+/* Chosen to look like Bangladesh: Dhaka-style concrete blocks with grilled balconies, tin-roof homes,
+   ceiling-fan bedrooms, steel-utensil kitchens and barred windows. No landmarks and no recognisable faces. */
+const POOL = {
+  ext: ['1749057505319-6e6c7f2789af', '1732870812739-bcd81a66468f', '1661111779164-2b43524cda54', '1789214069385-75544c74404d', '1765396576098-6a44270700d1', '1566581068035-4fc53781ae9d', '1667238993645-49573997d48f'],
+  vil: ['1648682149870-071f63d20d2c', '1646037884775-7258456e8348', '1755921739344-d94ea3d9ed8b', '1767154966831-9607c8322a5a'],
+  bed: ['1651766231012-8d8a4b2e20dc', '1649083048819-3fcd37423f45', '1662352137320-d1ac1494c8f1', '1633605016186-a8a919b14f5d', '1649083048239-c05841380582'],
+  liv: ['1787390629829-abb32b3025c5', '1633604712918-6ab1173d0ecd', '1645237455598-e8f02d706a4e'],
+  kit: ['1633536704679-de310869515b', '1691958050227-85762ee1cea5', '1529423374493-8b2f78fd2437', '1725483990150-61a9fbd746d1'],
+  bath: ['1552321554-5fefe8c9ef14', '1643949700215-e61cdca053f7'],
+  bal: ['1711699487800-fcf3a0af45ba', '1708223578831-5c737a3074ab'],
+  fan: ['1677959098115-1aafeb9313c0']
+};
+const UPLOAD_POOL = [POOL.ext[0], POOL.bed[0], POOL.kit[0], POOL.liv[0], POOL.bath[0], POOL.bal[0], POOL.bed[1], POOL.ext[1], POOL.kit[1], POOL.fan[0]];
+const imgUrl = (id, w) => `https://images.unsplash.com/photo-${id}?w=${w}&q=70&auto=format&fit=crop`;
+function photoIds(l) {
+  if (l.imgs && l.imgs.length) return l.imgs;
+  let s = 0; for (const c of l.id) s = (s * 31 + c.charCodeAt(0)) % 997;
+  const p = (k, o = 0) => POOL[k][(s + o) % POOL[k].length];
+  return l.type === 'house'
+    ? [p('vil'), p('bed'), p('kit'), p('vil', 1), p('bath'), p('bed', 1), p('fan'), p('kit', 1)]
+    : [p('ext'), p('bed'), p('liv'), p('kit'), p('bal'), p('bath'), p('bed', 1), p('fan')];
+}
+function tile(hue, i, n, small, src) {
+  const tag = small ? '' : `<span class="tag">${n ? t('photo_n', { i: num(i + 1), n: num(n) }) : t('sample_photo')}</span>`;
+  const img = src ? `<img src="${src}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : '';
+  return `<div class="tile" style="--h:${(hue + i * 17) % 360}" role="img" aria-label="${esc(t('sample_photo'))}">${ROOM}${img}${tag}</div>`;
+}
+function photoTile(l, i, { n = 0, small = false, w = 640 } = {}) {
+  const ids = photoIds(l);
+  return tile(l.hue, i, n, small, l.photos === 0 ? '' : imgUrl(ids[i % ids.length], w));
+}
+
+/* ---------- Pieces ---------- */
+function receipt(l, { title = true } = {}) {
+  const rows = [];
+  rows.push(row(t('rent'), money(l.rent)));
+  rows.push(row(t('service'), l.service ? money(l.service) : t('none'), !l.service));
+  for (const o of l.others.filter(o => o.rec)) rows.push(row(loc(o.label), o.amount != null ? money(o.amount) : t('meter'), o.amount == null));
+  const unknown = l.others.filter(o => o.rec && o.amount == null).map(o => loc(o.label));
+  const once = [row(t('advance'), l.advance != null ? money(l.advance) : t('not_specified'), l.advance == null)];
+  for (const o of l.others.filter(o => !o.rec)) once.push(row(loc(o.label), o.amount != null ? money(o.amount) : t('not_specified'), o.amount == null));
+  return `<div class="receipt">${title ? `<h3>${t('costs_t')}</h3>` : ''}
+    ${rows.join('')}
+    <div class="r-total"><span class="lbl">${t('total_month')}</span><span class="amt">${money(monthly(l))}</span></div>
+    ${unknown.length ? `<p class="r-note">${esc(t('excl_note', { x: unknown.join(', ') }))}</p>` : ''}
+    <div class="r-once"><div class="r-head">${t('one_time_head')}</div>${once.join('')}</div>
+  </div>`;
+  function row(k, v, na) { return `<div class="r-row"><span>${esc(k)}</span><span class="dots" aria-hidden="true"></span><span class="amt${na ? ' na' : ''}">${esc(v)}</span></div>`; }
+}
+function freshTag(l) {
+  return `<span class="fresh${l.confirmedAgo > 7 ? ' old' : ''}">${esc(t('confirmed', { t: ago(l.confirmedAgo, 'day') }))}</span>`;
+}
+function bedsTxt(b) { return b === 0 ? t('studio') : t('beds_n', { n: num(b) }); }
+function floorTxt(f) { return f === 0 ? t('ground') : t('floor_n', { n: num(f) }); }
+function saveBtn(l) {
+  const on = S.saved.has(l.id);
+  return `<button class="save-btn" data-act="save" data-id="${l.id}" aria-pressed="${on}">${on ? '★' : '☆'} ${on ? t('saved') : t('save')}</button>`;
+}
+function card(l) {
+  const extra = recurringKnown(l).length;
+  const split = `${t('rent')} ${money(l.rent)}${l.service ? ` + ${t('svc_short')} ${money(l.service)}` : ''}${extra ? ` + ${t('split_more', { n: num(extra) })}` : ''}`;
+  return `<article class="card">
+    <a class="card-photo" href="#/listing/${l.id}" tabindex="-1" aria-hidden="true">${photoTile(l, 0, { n: l.photos, w: 640 })}</a>
+    <div class="card-body">
+      <div class="card-top">${freshTag(l)}${saveBtn(l)}</div>
+      <h3><a href="#/listing/${l.id}">${L(l.title)}</a></h3>
+      <p class="area">${L(AREAS[l.area])}, ${t(l.type === 'flat' ? 'type_flat' : 'type_house')}</p>
+      <ul class="facts"><li>${bedsTxt(l.beds)}</li><li>${t('baths_n', { n: num(l.baths) })}</li>${l.sqft ? `<li>${t('sqft_n', { n: num(l.sqft) })}</li>` : ''}<li>${l.availIn ? t('avail_from', { d: dateIn(l.availIn) }) : t('avail_now')}</li></ul>
+      <div class="card-cost">
+        <div class="row"><span class="lbl">${t('total_month')}</span><span class="amt">${money(monthly(l))}</span></div>
+        <div class="split">${esc(split)}</div>
+        <div class="split">${t('advance')}: ${l.advance != null ? money(l.advance) : t('not_specified')}</div>
+      </div>
+    </div>
+  </article>`;
+}
+const statusBadge = s => {
+  const cls = { draft: 'b-muted', published: 'b-green', pending: 'b-brass', changes: 'b-red', rejected: 'b-red', expired: 'b-red', paused: 'b-muted', rented: 'b-muted', archived: 'b-muted' }[s];
+  return `<span class="badge ${cls}">${t('st_' + s)}</span>`;
+};
+
+/* ---------- Chrome ---------- */
+function protoBar() {
+  const r = (k, label) => `<button data-act="role" data-id="${k}" aria-pressed="${S.role === k}">${t(label)}</button>`;
+  return `<div class="proto"><div class="wrap"><span>${t('proto_note')}</span>
+    <span style="display:inline-flex;gap:8px;align-items:center"><span id="viewas">${t('view_as')}</span>
+    <span class="seg" role="group" aria-labelledby="viewas">${r('tenant', 'view_tenant')}${r('owner', 'view_owner')}${r('admin', 'view_admin')}</span></span></div></div>`;
+}
+function header(path) {
+  const cur = p => path === p ? ' aria-current="page"' : '';
+  let links = '';
+  if (S.role === 'admin') {
+    links = `<a href="#/admin"${cur('admin')}>${ICON.shield}${t('nav_admin')}</a><a href="#/search"${cur('search')}>${ICON.search}${t('nav_find')}</a>`;
+  } else if (S.role === 'owner') {
+    const n = attention().length;
+    links = `<a href="#/search"${cur('search')}>${ICON.search}${t('nav_find')}</a>
+      <a href="#/dashboard"${cur('dashboard')}>${ICON.list}${t('nav_dash')}${n ? `<span class="count" aria-label="${num(n)}">${num(n)}</span>` : ''}</a>
+      <a class="btn btn-primary btn-sm" href="#/post" data-act="new-listing">${ICON.plus}${t('nav_post')}</a>`;
+  } else {
+    links = `<a href="#/search"${cur('search')}>${ICON.search}${t('nav_find')}</a>
+      ${S.signedIn ? `<a href="#/saved"${cur('saved')}>${ICON.heart}${t('nav_saved')}</a>` : ''}
+      <button class="link btn btn-primary btn-sm" data-act="nav-post">${ICON.plus}${t('nav_post')}</button>
+      ${S.signedIn ? '' : `<button class="link" data-act="signin">${ICON.user}${t('nav_signin')}</button>`}`;
+  }
+  return `<header class="site"><div class="wrap">
+    <a class="logo" href="#/" aria-label="BasaChai">${ICON.roof}<span lang="bn">${t('brand')}</span></a>
+    <button class="lang" data-act="lang" lang="${S.lang === 'bn' ? 'en' : 'bn'}">${t('lang_switch')}</button>
+    <nav class="main" aria-label="Main">${links}</nav>
+  </div></header>`;
+}
+function footer() {
+  return `<footer class="site"><div class="wrap"><ul>
+    <li><a href="#/">${t('f_about')}</a></li><li><a href="#/">${t('f_how')}</a></li><li><a href="#/">${t('f_safety')}</a></li>
+    <li><a href="#/">${t('f_support')}</a></li><li><a href="#/">${t('f_terms')}</a></li><li><a href="#/">${t('f_privacy')}</a></li></ul>
+    <p>${t('f_line')}</p><p>${t('f_photos')}</p></div></footer>`;
+}
+
+/* ---------- Views ---------- */
+function areaOptions(sel, withAll = true) {
+  return (withAll ? `<option value="">${t('all_dhamrai')}</option>` : `<option value="">${t('f_area')}</option>`) +
+    Object.entries(AREAS).map(([k, v]) => `<option value="${k}"${sel === k ? ' selected' : ''}>${L(v)}</option>`).join('');
+}
+function viewHome() {
+  const recent = LISTINGS.filter(isPublic).sort((a, b) => a.confirmedAgo - b.confirmedAgo).slice(0, 4);
+  const sample = LISTINGS.find(l => l.id === 'D3');
+  return `<section class="hero">
+      <div>
+        <h1>${t('hero_title')}</h1>
+        <p class="sub">${t('hero_sub')}</p>
+        <form class="search-card" id="home-search">
+          <div class="field"><label class="f" for="h-area">${t('f_area')}</label><select id="h-area" name="area">${areaOptions('')}</select></div>
+          <div class="field"><label class="f" for="h-max">${t('f_max')}</label><input id="h-max" name="max" type="number" inputmode="numeric" min="0" step="500" placeholder="${num(15000)}"></div>
+          <div class="field"><label class="f" for="h-beds">${t('f_beds')}</label><select id="h-beds" name="beds"><option value="">${t('any')}</option><option value="0">${t('studio')}</option>${[1, 2, 3, 4].map(n => `<option value="${n}">${num(n)}</option>`).join('')}</select></div>
+          <button class="btn btn-primary" type="submit">${t('search_btn')}</button>
+        </form>
+      </div>
+      <div class="hero-aside">
+        <span class="badge b-brass" style="margin-bottom:8px">${t('example')}</span>
+        ${receipt(sample)}
+        <p class="cap">${t('hero_cap')}</p>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-head"><h2>${t('recent_t')}</h2><a href="#/search">${t('see_all')}</a></div>
+      <div class="cards grid4">${recent.map(card).join('')}</div>
+    </section>
+    <section class="section">
+      <h2 style="margin-bottom:16px">${t('how_t')}</h2>
+      <ol class="steps">
+        <li><h3>${t('how1_t')}</h3><p>${t('how1_d')}</p></li>
+        <li><h3>${t('how2_t')}</h3><p>${t('how2_d')}</p></li>
+        <li><h3>${t('how3_t')}</h3><p>${t('how3_d')}</p></li>
+      </ol>
+    </section>
+    <section class="section"><div class="safety">${ICON.eye}<div><h3>${t('safety_t')}</h3><p>${t('safety_d')}</p></div></div></section>`;
+}
+
+const FKEYS = ['area', 'min', 'max', 'beds', 'baths', 'type', 'furnish', 'occ', 'avail', 'sort'];
+function readFilters(q) { const f = {}; for (const k of FKEYS) f[k] = q.get(k) ?? ''; if (!f.sort) f.sort = 'confirmed'; return f; }
+function writeFilters(f) {
+  const q = new URLSearchParams();
+  for (const k of FKEYS) if (f[k] !== '' && f[k] != null && !(k === 'sort' && f[k] === 'confirmed')) q.set(k, f[k]);
+  const s = q.toString(); location.hash = '#/search' + (s ? '?' + s : '');
+}
+function match(l, f) {
+  if (!isPublic(l)) return false;
+  if (f.area && l.area !== f.area) return false;
+  if (f.min && l.rent < +f.min) return false;
+  if (f.max && l.rent > +f.max) return false;
+  if (f.beds !== '' && l.beds !== +f.beds) return false;
+  if (f.baths !== '' && l.baths !== +f.baths) return false;
+  if (f.type && l.type !== f.type) return false;
+  if (f.furnish && l.furnish !== f.furnish) return false;
+  if (f.occ && !(l.occ === f.occ || l.occ === 'any')) return false;
+  if (f.avail === 'now' && l.availIn > 0) return false;
+  if (f.avail === 'month' && l.availIn > 30) return false;
+  return true;
+}
+function viewSearch(q) {
+  const f = readFilters(q);
+  const sorters = { confirmed: (a, b) => a.confirmedAgo - b.confirmedAgo, newest: (a, b) => a.createdAgo - b.createdAgo, low: (a, b) => a.rent - b.rent, high: (a, b) => b.rent - a.rent };
+  const res = LISTINGS.filter(l => match(l, f)).sort(sorters[f.sort] || sorters.confirmed);
+  const sel = (name, opts, label) => `<div class="field"><label class="f" for="f-${name}">${label}</label><select id="f-${name}" data-filter="${name}">
+      <option value="">${t('any')}</option>${opts.map(([v, txt]) => `<option value="${v}"${f[name] === String(v) ? ' selected' : ''}>${txt}</option>`).join('')}</select></div>`;
+  const chips = [];
+  if (f.area) chips.push(['area', loc(AREAS[f.area])]);
+  if (f.min && f.max) chips.push(['min,max', t('rent_range', { a: money(+f.min), b: money(+f.max) })]);
+  else if (f.min) chips.push(['min', t('rent_min_chip', { a: money(+f.min) })]);
+  else if (f.max) chips.push(['max', t('rent_max_chip', { b: money(+f.max) })]);
+  if (f.beds !== '') chips.push(['beds', bedsTxt(+f.beds)]);
+  if (f.baths !== '') chips.push(['baths', t('baths_n', { n: num(+f.baths) })]);
+  if (f.type) chips.push(['type', t(f.type === 'flat' ? 'type_flat' : 'type_house')]);
+  if (f.furnish) chips.push(['furnish', t('furn_' + f.furnish)]);
+  if (f.occ) chips.push(['occ', t('occ_' + f.occ)]);
+  if (f.avail) chips.push(['avail', t(f.avail === 'now' ? 'avail_now_f' : 'avail_month')]);
+  const title = t('homes_in', { a: f.area ? loc(AREAS[f.area]) : t('all_dhamrai') });
+  let list;
+  if (res.length) list = `<div class="cards list">${res.map(card).join('')}</div>`;
+  else {
+    const sug = [];
+    if (f.max) sug.push(`<button class="btn btn-ghost btn-sm" data-act="clear-filter" data-id="max">${t('empty_max')}</button>`);
+    if (f.area) sug.push(`<button class="btn btn-ghost btn-sm" data-act="clear-filter" data-id="area">${t('empty_area')}</button>`);
+    if (f.beds !== '') sug.push(`<button class="btn btn-ghost btn-sm" data-act="clear-filter" data-id="beds">${t('empty_beds')}</button>`);
+    sug.push(`<button class="btn btn-primary btn-sm" data-act="reset-filters">${t('empty_reset')}</button>`);
+    list = `<div class="empty"><h2>${t('empty_t')}</h2><p>${t('empty_d')}</p><div class="actions">${sug.join('')}</div></div>`;
+  }
+  return `<div class="results">
+    <aside class="filters" id="filters" aria-label="${t('filters')}">
+      <h2>${t('filters')}</h2>
+      <div class="field"><label class="f" for="f-area">${t('f_area')}</label><select id="f-area" data-filter="area">${areaOptions(f.area)}</select></div>
+      <div class="row2">
+        <div class="field"><label class="f" for="f-min">${t('f_min')}</label><input id="f-min" type="number" inputmode="numeric" min="0" step="500" data-filter="min" value="${esc(f.min)}"></div>
+        <div class="field"><label class="f" for="f-max">${t('f_max')}</label><input id="f-max" type="number" inputmode="numeric" min="0" step="500" data-filter="max" value="${esc(f.max)}"></div>
+      </div>
+      ${sel('beds', [[0, t('studio')], [1, num(1)], [2, num(2)], [3, num(3)], [4, num(4)]], t('f_beds'))}
+      ${sel('baths', [[1, num(1)], [2, num(2)], [3, num(3)]], t('f_baths'))}
+      ${sel('type', [['flat', t('type_flat')], ['house', t('type_house')]], t('f_type'))}
+      ${sel('furnish', [['furnished', t('furn_furnished')], ['semi', t('furn_semi')], ['unfurnished', t('furn_unfurnished')]], t('f_furnish'))}
+      ${sel('occ', [['family', t('occ_family')], ['bachelor', t('occ_bachelor')], ['students', t('occ_students')]], t('f_occ'))}
+      ${sel('avail', [['now', t('avail_now_f')], ['month', t('avail_month')]], t('f_avail'))}
+      <button class="linkish" data-act="reset-filters">${t('clear_all')}</button>
+      <div class="sheet-actions"><button class="btn btn-ghost" data-act="reset-filters">${t('clear_all')}</button><button class="btn btn-primary" data-act="close-filters">${t('show_results')} (${num(res.length)})</button></div>
+    </aside>
+    <section aria-labelledby="res-title">
+      <h1 id="res-title" style="font-size:26px;margin-bottom:8px">${esc(title)}</h1>
+      <div class="results-head">
+        <span class="count" role="status">${t('results_n', { n: num(res.length) })}</span>
+        <span style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-ghost btn-sm filter-btn" data-act="open-filters" aria-controls="filters">${t('filters')}${chips.length ? ` (${num(chips.length)})` : ''}</button>
+          <label class="sr" for="f-sort">${t('sort')}</label>
+          <select id="f-sort" data-filter="sort">${['confirmed', 'newest', 'low', 'high'].map(s => `<option value="${s}"${f.sort === s ? ' selected' : ''}>${t('sort_' + s)}</option>`).join('')}</select>
+        </span>
+      </div>
+      ${chips.length ? `<div class="chips">${chips.map(([k, txt]) => `<span class="chip">${esc(txt)}<button data-act="clear-filter" data-id="${k}" aria-label="${esc(t('remove_filter', { x: txt }))}">×</button></span>`).join('')}</div>` : ''}
+      ${list}
+    </section>
+  </div>`;
+}
+
+function viewDetail(id) {
+  const l = byId(id);
+  if (!l || (!isPublic(l) && !(S.role !== 'tenant'))) return `<div class="empty" style="margin:40px 0"><h2>${t('not_found')}</h2><div class="actions"><a class="btn btn-primary" href="#/">${t('go_home')}</a></div></div>`;
+  const gi = S.gal[id] || 0;
+  const p = PEOPLE[l.owner];
+  const revealed = S.revealed.has(id);
+  const facts = [
+    ['k_type', t(l.type === 'flat' ? 'type_flat' : 'type_house')], ['k_beds', bedsTxt(l.beds)], ['k_baths', num(l.baths)],
+    l.sqft ? ['k_size', t('sqft_n', { n: num(l.sqft) })] : null, ['k_floor', floorTxt(l.floor)], ['k_furnish', t('furn_' + l.furnish)],
+    ['k_occ', t('occ_' + l.occ)], ['k_avail', l.availIn ? dateIn(l.availIn) : t('avail_now')]
+  ].filter(Boolean);
+  return `<p class="crumb"><a href="#/search">${t('back')}</a></p>
+  <div class="detail">
+    <div class="gal">
+      <div class="main">${photoTile(l, gi, { n: l.photos, w: 1280 })}</div>
+      <div class="thumbs">${Array.from({ length: l.photos }, (_, i) => `<button data-act="gal" data-id="${id}" data-i="${i}" aria-current="${i === gi}" aria-label="${esc(t('show_photo', { i: num(i + 1) }))}">${photoTile(l, i, { small: true, w: 200 })}</button>`).join('')}</div>
+    </div>
+    <div class="head">
+      ${freshTag(l)}
+      <h1 style="font-size:28px;margin-top:6px">${L(l.title)}</h1>
+      <div class="meta"><span>${L(AREAS[l.area])}</span><span>${bedsTxt(l.beds)}</span><span>${t('baths_n', { n: num(l.baths) })}</span><span>${l.availIn ? t('avail_from', { d: dateIn(l.availIn) }) : t('avail_now')}</span></div>
+    </div>
+    <aside class="side">
+      ${receipt(l)}
+      <div class="advertiser">
+        <div class="adv-who"><div class="avatar" aria-hidden="true">${esc(loc(p).slice(0, 1))}</div>
+          <div><div style="font-weight:600">${esc(loc(p))}</div><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge b-green">${t('owner')}</span><span class="badge b-muted">${t('not_verified')}</span></div></div></div>
+        ${revealed
+          ? `<div class="phone-big">${phoneFmt(p.phone)}</div><a class="btn btn-primary" href="tel:${p.phone}">${t('call')}</a>`
+          : `${S.revealBlocked === id ? `<p class="err" role="alert">${t('reveal_limited', { minutes: num(60) })}</p>` : ''}<button class="btn btn-primary" data-act="reveal" data-id="${id}">${t('show_number')}</button>`}
+        <p class="warn-line">${t('pay_warn')}</p>
+        <div class="side-actions">${saveBtn(l)}<button class="linkish" data-act="report" data-id="${id}">${t('report')}</button></div>
+      </div>
+    </aside>
+    <div class="body">
+      <section><h2>${t('about_t')}</h2><dl class="facts-grid">${facts.map(([k, v]) => `<div><dt>${t(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></section>
+      ${loc(l.desc) ? `<section><h2>${t('desc_t')}</h2><p>${L(l.desc)}</p></section>` : ''}
+      ${l.amen.length ? `<section><h2>${t('amen_t')}</h2><ul class="amen">${l.amen.map(a => `<li>${L(AMEN[a])}</li>`).join('')}</ul></section>` : ''}
+      ${l.rules && loc(l.rules) ? `<section><h2>${t('rules_t')}</h2><p>${L(l.rules)}</p></section>` : ''}
+      <section><h2>${t('loc_t')}</h2><p>${L(AREAS[l.area])}, ${S.lang === 'bn' ? 'ধামরাই, ঢাকা' : 'Dhamrai, Dhaka'}</p><p class="hint">${t('loc_d')}</p></section>
+    </div>
+  </div>`;
+}
+
+function viewSaved() {
+  const list = LISTINGS.filter(l => S.saved.has(l.id) && isPublic(l));
+  return `<div class="dash"><div class="dash-head"><h1 style="font-size:28px">${t('saved_t')}</h1></div>
+    ${list.length ? `<div class="cards grid3">${list.map(card).join('')}</div>` : `<div class="empty"><p>${t('saved_empty')}</p><div class="actions"><a class="btn btn-primary" href="#/search">${t('nav_find')}</a></div></div>`}</div>`;
+}
+
+/* Post a property */
+function draftListing() {
+  const d = S.draft;
+  return { rent: +d.rent || 0, service: +d.service || 0, advance: d.advNone || d.advance === '' ? null : +d.advance,
+    others: d.others.filter(o => o.label.trim()).map(o => ({ label: { bn: o.label, en: o.label }, amount: o.amount === '' ? null : +o.amount, rec: o.rec })) };
+}
+function err(k) { return S.errors[k] ? `<p class="err" id="e-${k}">${t('required')}</p>` : ''; }
+function inv(k) { return S.errors[k] ? ' aria-invalid="true" aria-describedby="e-' + k + '"' : ''; }
+function viewPost() {
+  if (S.submitted) return `<div class="success panel" style="margin:32px 0"><div class="mark">${ICON.check}</div><h1 style="font-size:26px">${t('submitted_t')}</h1>
+      <p style="max-width:46ch;margin:10px auto 20px">${t('submitted_d')}</p>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><a class="btn btn-primary" href="#/dashboard">${t('go_dash')}</a><button class="btn btn-ghost" data-act="post-again">${t('post_another')}</button></div></div>`;
+  const d = S.draft, st = S.step;
+  const steps = ['step1', 'step2', 'step3', 'step4'].map((k, i) => `<li${i + 1 === st ? ' aria-current="step"' : ''}${i + 1 < st ? ' class="done"' : ''}><span class="n">${num(i + 1)}</span>${t(k)}</li>`).join('');
+  let body = '';
+  if (st === 1) {
+    body = `<h2>${t('step1')}</h2>
+      <div class="field"><label class="f" for="p-title">${t('l_title')}</label><input id="p-title" type="text" data-field="title" value="${esc(d.title)}" placeholder="${esc(t('ph_title'))}"${inv('title')}>${err('title')}</div>
+      <div class="row2">
+        <div class="field"><label class="f" for="p-type">${t('f_type')}</label><select id="p-type" data-field="type"><option value="flat"${d.type === 'flat' ? ' selected' : ''}>${t('type_flat')}</option><option value="house"${d.type === 'house' ? ' selected' : ''}>${t('type_house')}</option></select></div>
+        <div class="field"><label class="f" for="p-area">${t('f_area')}</label><select id="p-area" data-field="area"${inv('area')}>${areaOptions(d.area, false)}</select>${err('area')}</div>
+      </div>
+      <div class="row3">
+        <div class="field"><label class="f" for="p-beds">${t('f_beds')}</label><select id="p-beds" data-field="beds"><option value="0"${d.beds === '0' ? ' selected' : ''}>${t('studio')}</option>${[1, 2, 3, 4, 5].map(n => `<option value="${n}"${d.beds === String(n) ? ' selected' : ''}>${num(n)}</option>`).join('')}</select></div>
+        <div class="field"><label class="f" for="p-baths">${t('f_baths')}</label><select id="p-baths" data-field="baths">${[1, 2, 3, 4].map(n => `<option value="${n}"${d.baths === String(n) ? ' selected' : ''}>${num(n)}</option>`).join('')}</select></div>
+        <div class="field"><label class="f" for="p-sqft">${t('l_sqft')}</label><input id="p-sqft" type="number" inputmode="numeric" min="0" data-field="sqft" value="${esc(d.sqft)}"></div>
+      </div>
+      <div class="row3">
+        <div class="field"><label class="f" for="p-floor">${t('l_floor')}</label><input id="p-floor" type="number" inputmode="numeric" min="0" data-field="floor" value="${esc(d.floor)}"></div>
+        <div class="field"><label class="f" for="p-furnish">${t('f_furnish')}</label><select id="p-furnish" data-field="furnish">${['unfurnished', 'semi', 'furnished'].map(v => `<option value="${v}"${d.furnish === v ? ' selected' : ''}>${t('furn_' + v)}</option>`).join('')}</select></div>
+        <div class="field"><label class="f" for="p-occ">${t('f_occ')}</label><select id="p-occ" data-field="occ">${['any', 'family', 'bachelor', 'students'].map(v => `<option value="${v}"${d.occ === v ? ' selected' : ''}>${t('occ_' + v)}</option>`).join('')}</select></div>
+      </div>
+      <fieldset class="field" style="border:0;padding:0;margin:0 0 16px"><legend class="f">${t('l_avail')}</legend>
+        <div class="pills"><button type="button" data-act="avail-now" aria-pressed="${d.availNow}">${t('avail_now_f')}</button><button type="button" data-act="avail-date" aria-pressed="${!d.availNow}">${t('l_avail_date')}</button></div>
+        ${d.availNow ? '' : `<div style="margin-top:8px;max-width:220px"><label class="sr" for="p-date">${t('l_avail_date')}</label><input id="p-date" type="date" data-field="availDate" value="${esc(d.availDate)}"${inv('availDate')}>${err('availDate')}</div>`}
+      </fieldset>
+      <fieldset class="field" style="border:0;padding:0;margin:0 0 16px"><legend class="f">${t('l_amen')}</legend>
+        <div class="checks">${Object.entries(AMEN).map(([k, v]) => `<label class="check"><input type="checkbox" data-amen="${k}"${d.amen.includes(k) ? ' checked' : ''}>${L(v)}</label>`).join('')}</div></fieldset>
+      <div class="field"><label class="f" for="p-desc">${t('l_desc')}</label><textarea id="p-desc" data-field="desc" placeholder="${esc(t('ph_desc'))}">${esc(d.desc)}</textarea></div>
+      <div class="field"><label class="f" for="p-rules">${t('l_rules')}</label><input id="p-rules" type="text" data-field="rules" value="${esc(d.rules)}" placeholder="${esc(t('ph_rules'))}"></div>
+      <div class="field"><label class="f" for="p-address">${t('l_address')}</label><input id="p-address" type="text" data-field="address" value="${esc(d.address)}" aria-describedby="h-address"><p class="hint" id="h-address">${t('address_hint')}</p></div>`;
+  } else if (st === 2) {
+    body = `<h2>${t('step2')}</h2>
+      <div class="row2">
+        <div class="field"><label class="f" for="p-rent">${t('l_rent')}</label><input id="p-rent" type="number" inputmode="numeric" min="0" step="100" data-field="rent" value="${esc(d.rent)}"${inv('rent')}>${err('rent')}</div>
+        <div class="field"><label class="f" for="p-service">${t('l_service')}</label><input id="p-service" type="number" inputmode="numeric" min="0" step="50" data-field="service" value="${esc(d.service)}" aria-describedby="h-service"${S.errors.service ? ' aria-invalid="true"' : ''}><p class="hint" id="h-service">${t('service_hint')}</p>${err('service')}</div>
+      </div>
+      <div class="field"><label class="f" for="p-advance">${t('l_advance')}</label>
+        <input id="p-advance" type="number" inputmode="numeric" min="0" step="500" data-field="advance" value="${esc(d.advance)}"${d.advNone ? ' disabled' : ''}${inv('advance')} style="max-width:260px">${err('advance')}
+        <label class="check" style="margin-top:8px"><input type="checkbox" data-field="advNone"${d.advNone ? ' checked' : ''}>${t('l_adv_none')}</label></div>
+      <fieldset class="field" style="border:0;padding:0;margin:0 0 16px"><legend class="f">${t('l_others')}</legend><p class="hint">${t('others_hint')}</p>
+        ${d.others.map((o, i) => `<div class="other-row">
+          <input type="text" aria-label="${esc(t('other_label'))}" placeholder="${esc(t('other_label'))}" data-other="${i}" data-k="label" value="${esc(o.label)}">
+          <input type="number" inputmode="numeric" min="0" aria-label="${esc(t('other_amount'))}" placeholder="${esc(t('other_amount'))}" data-other="${i}" data-k="amount" value="${esc(o.amount)}">
+          <select aria-label="${esc(t('other_label'))}" data-other="${i}" data-k="rec"><option value="1"${o.rec ? ' selected' : ''}>${t('monthly')}</option><option value="0"${o.rec ? '' : ' selected'}>${t('once')}</option></select>
+          <button type="button" class="icon-btn" data-act="other-del" data-i="${i}" aria-label="${esc(t('remove'))}">×</button></div>`).join('')}
+        <button type="button" class="btn btn-ghost btn-sm" data-act="other-add">${t('add_cost')}</button></fieldset>`;
+  } else if (st === 3) {
+    const need = Math.max(0, 3 - d.photos.length);
+    body = `<h2>${t('step3')}</h2><p class="hint">${t('photos_hint')}</p>
+      <div class="photo-grid">
+        ${d.photos.map((h, i) => `<div class="photo-item">${tile(150 + i * 40, 0, 0, true, imgUrl(h, 320))}${i === 0 ? `<span class="badge b-brass" style="justify-self:start">${t('cover')}</span>` : ''}
+          <div class="ops"><button data-act="ph-left" data-i="${i}" aria-label="${esc(t('move_left'))}"${i === 0 ? ' disabled' : ''}>‹</button><button data-act="ph-del" data-i="${i}">${t('remove')}</button><button data-act="ph-right" data-i="${i}" aria-label="${esc(t('move_right'))}"${i === d.photos.length - 1 ? ' disabled' : ''}>›</button></div></div>`).join('')}
+        ${S.uploading ? `<div class="uploading">${t('uploading')}</div>` : ''}
+        ${d.photos.length < 20 ? `<button class="add-tile" data-act="ph-add">+ ${t('add_photo')}</button>` : ''}
+      </div>
+      <p><strong>${t('photos_n', { n: num(d.photos.length) })}</strong>${need ? ` <span class="err" style="display:inline">${t('need_photos', { n: num(need) })}</span>` : ''}</p>`;
+  } else {
+    const pl = previewListing();
+    body = `<h2>${t('step4')}</h2>
+      <div class="cards">${card(pl)}</div>
+      <p class="hint" style="margin-top:14px">${t('review_note')}</p>`;
+  }
+  const live = liveEdit();
+  const fwd = st < 4 ? `<button class="btn btn-primary" data-act="post-next">${t('next')}</button>` : live ? '' : `<button class="btn btn-brass" data-act="post-submit">${t('submit')}</button>`;
+  const nav = `<div class="form-nav">
+      ${st > 1 ? `<button class="btn btn-ghost" data-act="post-prev">${t('prev')}</button>` : '<span></span>'}
+      <span style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">${live ? `<button class="btn btn-brass" data-act="save-live">${t('save_changes')}</button>` : ''}${fwd}</span></div>`;
+  return `<div style="padding-top:24px"><h1 style="font-size:30px">${t('post_t')}</h1><p class="hint" style="font-size:15px">${t('post_sub')}</p><ol class="stepper">${steps}</ol></div>
+    <div class="post" style="padding-top:0">
+      <div><div class="panel">${body}</div>${nav}</div>
+      <aside class="preview"><p class="f" style="margin-bottom:8px">${t('preview_t')}</p><div id="draft-receipt">${receipt(Object.assign(previewListing(), draftListing()))}</div></aside>
+    </div>`;
+}
+function previewListing() {
+  const d = S.draft;
+  return Object.assign({ id: 'preview', owner: 'me', type: d.type, area: d.area || 'dhamrai', title: { bn: d.title || t('l_title'), en: d.title || t('l_title') },
+    beds: +d.beds, baths: +d.baths, sqft: d.sqft ? +d.sqft : null, floor: d.floor === '' ? null : +d.floor, furnish: d.furnish, occ: d.occ,
+    availIn: d.availNow || !d.availDate ? 0 : Math.max(0, Math.round((new Date(d.availDate) - new Date()) / 864e5)), amen: d.amen,
+    rules: { bn: d.rules, en: d.rules }, desc: { bn: d.desc, en: d.desc }, confirmedAgo: 0, createdAgo: 0, photos: Math.max(1, d.photos.length), imgs: d.photos.slice(), hue: 150, views: 0, reveals: 0 }, draftListing());
+}
+/* Drafts and edits: the form is saved to a listing so owners can leave and come back */
+function formFromListing(l) {
+  const s = v => v == null ? '' : String(v);
+  return { title: loc(l.title), type: l.type, area: l.area, beds: s(l.beds), baths: s(l.baths), sqft: s(l.sqft), floor: s(l.floor), furnish: l.furnish, occ: l.occ,
+    availNow: !l.availIn, availDate: l.availIn ? new Date(Date.now() + l.availIn * 864e5).toISOString().slice(0, 10) : '', desc: loc(l.desc), address: '', amen: l.amen.slice(), rules: loc(l.rules),
+    rent: s(l.rent), service: s(l.service), advance: s(l.advance), advNone: l.advance == null, others: l.others.map(o => ({ label: loc(o.label), amount: s(o.amount), rec: o.rec })),
+    photos: l.photos ? photoIds(l).slice(0, l.photos) : [] };
+}
+function applyForm(l) {
+  const d = S.draft, p = previewListing();
+  const txt = (orig, v) => (orig && loc(orig) === v ? orig : { bn: v, en: v });
+  const others = p.others.map(o => Object.assign(o, { label: ((l.others || []).find(x => loc(x.label) === o.label.bn) || o).label }));
+  Object.assign(l, { type: p.type, area: d.area || l.area, beds: p.beds, baths: p.baths, sqft: p.sqft, floor: p.floor, furnish: p.furnish, occ: p.occ, availIn: p.availIn,
+    amen: p.amen.slice(), rent: p.rent, service: p.service, advance: p.advance, others, photos: d.photos.length, imgs: d.photos.slice(),
+    title: txt(l.title, d.title), desc: txt(l.desc, d.desc), rules: txt(l.rules, d.rules) });
+}
+function saveDraft() {
+  let l = S.editId && byId(S.editId);
+  if (!l) { l = { id: 'N' + Date.now(), owner: 'me', status: 'draft', hue: 110, views: 0, reveals: 0, createdAgo: 0 }; LISTINGS.push(l); S.editId = l.id; }
+  applyForm(l); l.form = S.draft; l.step = S.step;
+}
+function autosave() { const l = S.editId && byId(S.editId); if (l ? l.status === 'draft' : S.draft.title.trim()) saveDraft(); }
+function liveEdit() { const l = S.editId && byId(S.editId); return !!l && l.status === 'published'; }
+function startNew() { if (S.editId) { S.editId = null; S.draft = newDraft(); S.step = 1; S.errors = {}; } S.submitted = false; }
+function validateStep() {
+  const d = S.draft, e = {};
+  if (S.step === 1) { if (!d.title.trim()) e.title = 1; if (!d.area) e.area = 1; if (!d.availNow && !d.availDate) e.availDate = 1; }
+  if (S.step === 2) { if (d.rent === '' || +d.rent <= 0) e.rent = 1; if (d.service === '') e.service = 1; if (!d.advNone && d.advance === '') e.advance = 1; }
+  if (S.step === 3 && d.photos.length < 3) e.photos = 1;
+  S.errors = e; return !Object.keys(e).length;
+}
+
+/* Owner dashboard */
+function viewDashboard() {
+  if (S.role !== 'owner') return `<div class="empty" style="margin:40px 0"><p>${t('signin_why_post')}</p><div class="actions"><button class="btn btn-primary" data-act="role" data-id="owner">${t('view_owner')}</button></div></div>`;
+  const mine = LISTINGS.filter(l => l.owner === 'me' && l.status !== 'archived');
+  const alerts = [];
+  for (const l of mine) {
+    const s = eff(l), title = esc(loc(l.title));
+    if (s === 'published' && expiresIn(l) <= 3) alerts.push(`<div class="alert brass"><p>${t('al_expiring', { x: title, n: num(expiresIn(l)) })}</p><div class="acts"><button class="btn btn-primary btn-sm" data-act="reconfirm" data-id="${l.id}">${t('reconfirm')}</button></div></div>`);
+    if (s === 'expired') alerts.push(`<div class="alert red"><p>${t('al_expired', { x: title })}</p><div class="acts"><button class="btn btn-primary btn-sm" data-act="renew" data-id="${l.id}">${t('renew')}</button></div></div>`);
+    if (s === 'changes') alerts.push(`<div class="alert red"><p>${t('al_changes', { x: title })}</p><div class="acts"><button class="btn btn-ghost btn-sm" data-act="edit" data-id="${l.id}">${t('edit')}</button></div></div>`);
+  }
+  const order = { changes: 0, draft: 1, expired: 2, pending: 3, published: 4, paused: 5, rented: 6, rejected: 7 };
+  const rows = mine.sort((a, b) => (order[eff(a)] ?? 9) - (order[eff(b)] ?? 9)).map(l => {
+    const s = eff(l);
+    const acts = [];
+    if (s === 'draft') acts.push(['continue', 'btn-primary'], ['archive', 'btn-ghost']);
+    if (s === 'published') acts.push(['reconfirm', 'btn-ghost'], ['pause', 'btn-ghost'], ['mark-rented', 'btn-ghost'], ['edit', 'btn-ghost']);
+    if (s === 'paused') acts.push(['resume', 'btn-ghost'], ['mark-rented', 'btn-ghost']);
+    if (s === 'expired') acts.push(['renew', 'btn-primary'], ['archive', 'btn-ghost']);
+    if (s === 'changes') acts.push(['edit', 'btn-primary'], ['archive', 'btn-ghost']);
+    if (s === 'rented' || s === 'rejected') acts.push(['archive', 'btn-ghost']);
+    const sub = [];
+    if (s === 'published' || s === 'paused') sub.push(t('days_left', { n: num(expiresIn(l)) }));
+    if (s === 'pending') sub.push(t('mod_review'));
+    if (l.views) sub.push(t('views_n', { n: num(l.views) }));
+    if (l.reveals) sub.push(t('reveals_n', { n: num(l.reveals) }));
+    const label = { 'mark-rented': 'mark_rented' };
+    return `<article class="lrow">${photoTile(l, 0, { small: true, w: 240 })}
+      <div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${statusBadge(s)}<span class="hint">${money(monthly(l))} / ${t('total_month')}</span></div>
+        <h3 style="margin-top:4px">${s === 'published' ? `<a href="#/listing/${l.id}" style="color:inherit">${L(l.title)}</a>` : L(l.title)}</h3>
+        <div class="sub">${sub.map(x => `<span>${x}</span>`).join('')}</div>
+        ${(s === 'changes' || s === 'rejected') && l.reason ? `<div class="reason"><strong>${t('mod_reason')}:</strong> ${L(l.reason)}</div>` : ''}
+        ${acts.length ? `<div class="acts">${acts.map(([a, c]) => `<button class="btn ${c} btn-sm" data-act="${a}" data-id="${l.id}">${t(label[a] || a)}</button>`).join('')}</div>` : ''}</div></article>`;
+  }).join('');
+  return `<div class="dash"><div class="dash-head"><h1 style="font-size:28px">${t('dash_t')}</h1><a class="btn btn-primary" href="#/post" data-act="new-listing">${t('new_listing')}</a></div>
+    ${alerts.length ? `<div class="alerts" role="region" aria-label="${esc(t('dash_t'))}">${alerts.join('')}</div>` : ''}
+    ${rows || `<p>${t('no_listings')}</p>`}</div>`;
+}
+
+/* Moderation */
+function viewAdmin() {
+  if (S.role !== 'admin') return `<div class="empty" style="margin:40px 0"><div class="actions"><button class="btn btn-primary" data-act="role" data-id="admin">${t('view_admin')}</button></div></div>`;
+  const queue = LISTINGS.filter(l => l.status === 'pending').sort((a, b) => b.submittedHours - a.submittedHours);
+  const reps = REPORTS.filter(r => r.open);
+  const live = LISTINGS.filter(isPublic).length;
+  const overdue = queue.filter(l => l.submittedHours > 24).length + reps.filter(r => r.hours > 24).length;
+  const q = queue.map(l => {
+    const p = PEOPLE[l.owner];
+    return `<article class="qcard"><div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="hint">${esc(t('submitted_ago', { t: agoHours(l.submittedHours) }))}</span>${l.submittedHours > 24 ? `<span class="badge b-red">${t('overdue')}</span>` : ''}</div>
+        <h3 style="margin-top:4px">${L(l.title)}</h3>
+        <p class="hint" style="margin:0;display:flex;gap:12px;flex-wrap:wrap"><span>${L(AREAS[l.area])}</span><span>${esc(loc(p))}</span></p>
+        <div class="mini-tiles">${Array.from({ length: Math.min(l.photos, 4) }, (_, i) => photoTile(l, i, { small: true, w: 200 })).join('')}</div>
+        <p class="hint" style="margin:0">${t('photos_count', { n: num(l.photos) })}</p>
+        ${loc(l.desc) ? `<p style="margin-top:8px">${L(l.desc)}</p>` : ''}
+      </div>
+      ${receipt(l, { title: false })}
+      <div class="acts"><button class="btn btn-primary btn-sm" data-act="approve" data-id="${l.id}">${t('approve')}</button>
+        <button class="btn btn-ghost btn-sm" data-act="mod-changes" data-id="${l.id}">${t('request_changes')}</button>
+        <button class="btn btn-danger btn-sm" data-act="mod-reject" data-id="${l.id}">${t('reject')}</button></div></article>`;
+  }).join('');
+  const r = reps.map(rp => {
+    const l = byId(rp.listing);
+    return `<article class="rep"><div class="top"><span class="badge ${rp.reason === 'suspicious' ? 'b-red' : 'b-brass'}">${t('r_' + rp.reason)}</span>
+        <span class="hint">${esc(t('reported_ago', { t: agoHours(rp.hours) }))}${rp.hours > 24 ? ` <span class="badge b-red">${t('overdue')}</span>` : ''}</span></div>
+      <h3 style="margin:6px 0 0;font-size:16px"><a href="#/listing/${l.id}">${L(l.title)}</a></h3>
+      ${loc(rp.details) ? `<blockquote>${L(rp.details)}</blockquote>` : ''}
+      <div class="acts"><button class="btn btn-danger btn-sm" data-act="rep-hide" data-id="${rp.id}">${t('hide_listing')}</button><button class="btn btn-ghost btn-sm" data-act="rep-dismiss" data-id="${rp.id}">${t('dismiss')}</button></div></article>`;
+  }).join('');
+  return `<div class="dash"><div class="dash-head"><h1 style="font-size:28px">${t('admin_t')}</h1></div>
+    <div class="stats"><div><div class="v">${num(queue.length)}</div><div class="k">${t('s_pending')}</div></div>
+      <div><div class="v">${num(live)}</div><div class="k">${t('s_live')}</div></div>
+      <div><div class="v">${num(reps.length)}</div><div class="k">${t('s_reports')}</div></div>
+      <div><div class="v${overdue ? ' red' : ''}">${num(overdue)}</div><div class="k">${t('s_overdue')}</div></div></div>
+    <div class="admin-cols">
+      <section><h2 style="margin-bottom:12px">${t('queue_t')}</h2>${q || `<div class="empty"><p>${t('queue_empty')}</p></div>`}</section>
+      <section><h2 style="margin-bottom:12px">${t('reports_t')}</h2>${r || `<div class="empty"><p>${t('reports_empty')}</p></div>`}</section>
+    </div></div>`;
+}
+
+/* ---------- Dialogs ---------- */
+function openDialog(html) { const d = $('#dlg'); d.innerHTML = html; if (!d.open) d.showModal(); const f = d.querySelector('input, select, textarea, button'); if (f) f.focus(); }
+function closeDialog() { const d = $('#dlg'); if (d.open) d.close(); }
+function signinDialog(why, signup = false) {
+  S.signinWhy = why; S.signup = signup;
+  openDialog(`<form class="dlg" id="signin-form" novalidate><h2 id="dlg-title">${t(signup ? 'create_account' : 'signin_t')}</h2>${why ? `<p>${t(why)}</p>` : ''}
+    ${signup ? `<div class="field"><label class="f" for="s-name">${t('name')}</label><input id="s-name" type="text" autocomplete="name"><p class="err" id="s-name-err" hidden>${t('required')}</p></div>` : ''}
+    <div class="field"><label class="f" for="s-phone">${t('phone')}</label><input id="s-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="${digitsLocal('01712345678')}"><p class="err" id="s-phone-err" hidden>${t('phone_err')}</p></div>
+    <div class="field"><label class="f" for="s-pass">${t('password')}</label><input id="s-pass" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}"><p class="err" id="s-pass-err" hidden>${t('pass_err')}</p></div>
+    <p class="hint">${t('signin_note')}</p>
+    <p><button type="button" class="linkish" data-act="auth-mode">${t(signup ? 'signin_btn' : 'create_account')}</button></p>
+    <div class="acts"><button type="button" class="btn btn-ghost" data-act="dlg-close">${t('cancel')}</button><button class="btn btn-primary" type="submit">${t(signup ? 'create_account' : 'signin_btn')}</button></div></form>`);
+}
+function reportDialog(id) {
+  const rs = ['suspicious', 'inaccurate', 'duplicate', 'unavailable'];
+  openDialog(`<form class="dlg" id="report-form" data-id="${id}" novalidate><h2 id="dlg-title">${t('report_t')}</h2>
+    <div class="radio-list" role="radiogroup" aria-labelledby="dlg-title">${rs.map(r => `<label><input type="radio" name="reason" value="${r}">${t('r_' + r)}</label>`).join('')}</div>
+    <p class="err" id="r-err" hidden>${t('pick_reason')}</p>
+    <label class="f" for="r-details">${t('r_details')}</label><textarea id="r-details" name="details"></textarea>
+    <div class="acts"><button type="button" class="btn btn-ghost" data-act="dlg-close">${t('cancel')}</button><button class="btn btn-primary" type="submit">${t('send_report')}</button></div></form>`);
+}
+function reasonDialog(id, kind) {
+  openDialog(`<form class="dlg" id="reason-form" data-id="${id}" data-kind="${kind}" novalidate><h2 id="dlg-title">${t(kind === 'changes' ? 'reason_t_changes' : 'reason_t_reject')}</h2>
+    <label class="f" for="m-reason">${t('reason_label')}</label><textarea id="m-reason"></textarea><p class="err" id="m-err" hidden>${t('reason_err')}</p>
+    <div class="acts"><button type="button" class="btn btn-ghost" data-act="dlg-close">${t('cancel')}</button><button class="btn ${kind === 'changes' ? 'btn-primary' : 'btn-danger'}" type="submit">${t('send')}</button></div></form>`);
+}
+
+/* ---------- Router ---------- */
+function parse() { const h = location.hash.slice(1) || '/'; const [p, qs] = h.split('?'); return { parts: p.split('/').filter(Boolean), q: new URLSearchParams(qs || '') }; }
+function render() {
+  document.documentElement.lang = S.lang;
+  const { parts, q } = parse();
+  const path = parts[0] || '';
+  let view;
+  if (path === 'search') view = viewSearch(q);
+  else if (path === 'listing') view = viewDetail(parts[1]);
+  else if (path === 'post') view = viewPost();
+  else if (path === 'dashboard') view = viewDashboard();
+  else if (path === 'admin') view = viewAdmin();
+  else if (path === 'saved') view = viewSaved();
+  else view = viewHome();
+  document.body.classList.toggle('filters-open', path === 'search' && S.filtersOpen);
+  $('#app').innerHTML = protoBar() + header(path) + `<main id="main" class="wrap">${view}</main>` + footer();
+  const full = parts.join('/');
+  if (full !== S.lastPath) { window.scrollTo(0, 0); S.lastPath = full; }
+}
+function go(hash) { if (location.hash === hash) render(); else location.hash = hash; }
+
+/* ---------- Actions ---------- */
+const A = {
+  lang() { S.lang = S.lang === 'bn' ? 'en' : 'bn'; try { localStorage.setItem('basachai-lang', S.lang); } catch (e) { /* ignore */ } render(); },
+  role(id) { S.role = id; S.signedIn = id !== 'tenant' ? true : S.signedIn; go(id === 'owner' ? '#/dashboard' : id === 'admin' ? '#/admin' : '#/'); },
+  signin() { S.pending = null; signinDialog(''); },
+  'nav-post'() { if (S.signedIn) { S.role = 'owner'; startNew(); go('#/post'); } else { S.pending = { k: 'post' }; signinDialog('signin_why_post'); } },
+  save(id) {
+    if (!S.signedIn) { S.pending = { k: 'save', id }; signinDialog('signin_why_save'); return; }
+    if (S.saved.has(id)) { S.saved.delete(id); toast(t('toast_unsaved')); } else { S.saved.add(id); toast(t('toast_saved')); }
+    render();
+  },
+  reveal(id) {
+    if (S.revealCount >= 10) { S.revealBlocked = id; render(); return; }  /* 10 per hour, as in trust and safety */
+    S.revealCount++; S.revealBlocked = null; S.revealed.add(id); const l = byId(id); l.reveals++; render();
+  },
+  'auth-mode'() { signinDialog(S.signinWhy, !S.signup); },
+  report(id) { reportDialog(id); },
+  'dlg-close'() { closeDialog(); },
+  gal(id, el) { S.gal[id] = +el.dataset.i; render(); },
+  'open-filters'() { S.filtersOpen = true; render(); const f = $('#f-area'); if (f) f.focus(); },
+  'close-filters'() { S.filtersOpen = false; render(); },
+  'reset-filters'() { const f = readFilters(parse().q); writeFilters({ sort: f.sort }); },
+  'clear-filter'(keys) { const f = readFilters(parse().q); for (const k of keys.split(',')) f[k] = ''; writeFilters(f); },
+  'avail-now'() { S.draft.availNow = true; render(); },
+  'avail-date'() { S.draft.availNow = false; render(); },
+  'other-add'() { S.draft.others.push({ label: '', amount: '', rec: true }); render(); },
+  'other-del'(_, el) { S.draft.others.splice(+el.dataset.i, 1); render(); },
+  'ph-add'() {
+    if (S.uploading) return; S.uploading = true; render();
+    setTimeout(() => { S.uploading = false; S.draft.photos.push(UPLOAD_POOL[S.draft.photos.length % UPLOAD_POOL.length]); delete S.errors.photos; render(); }, 600);
+  },
+  'ph-del'(_, el) { S.draft.photos.splice(+el.dataset.i, 1); render(); },
+  'ph-left'(_, el) { const i = +el.dataset.i, p = S.draft.photos; [p[i - 1], p[i]] = [p[i], p[i - 1]]; render(); },
+  'ph-right'(_, el) { const i = +el.dataset.i, p = S.draft.photos; [p[i + 1], p[i]] = [p[i], p[i + 1]]; render(); },
+  'post-next'() { if (!liveEdit()) autosave(); if (validateStep()) { S.step++; S.errors = {}; if (!liveEdit()) autosave(); } render(); const e = document.querySelector('[aria-invalid="true"]'); if (e) e.focus(); else window.scrollTo(0, 0); },
+  'post-prev'() { S.step--; S.errors = {}; render(); window.scrollTo(0, 0); },
+  'post-submit'() {
+    const l = S.editId && byId(S.editId);
+    if (l) { applyForm(l); Object.assign(l, { status: 'pending', submittedHours: 0 }); delete l.form; delete l.step; delete l.reason; }
+    else LISTINGS.push(Object.assign(previewListing(), { id: 'N' + Date.now(), status: 'pending', submittedHours: 0, confirmedAgo: undefined, title: { bn: S.draft.title, en: S.draft.title } }));
+    S.editId = null; S.submitted = true; render(); window.scrollTo(0, 0);
+  },
+  'save-live'() {
+    if (!validateStep()) { render(); return; }
+    applyForm(byId(S.editId)); S.editId = null; S.draft = newDraft(); S.step = 1; S.errors = {};
+    toast(t('t_saved_live')); go('#/dashboard');
+  },
+  'post-again'() { S.editId = null; S.draft = newDraft(); S.step = 1; S.submitted = false; S.errors = {}; render(); },
+  'new-listing'() { startNew(); go('#/post'); },
+  continue(id) {
+    const l = byId(id); S.draft = l.form || formFromListing(l); l.form = S.draft;
+    S.editId = id; S.step = l.step || 1; S.errors = {}; S.submitted = false; go('#/post');
+  },
+  reconfirm(id) { const l = byId(id); l.status = 'published'; l.confirmedAgo = 0; toast(t('t_reconfirmed')); render(); },
+  renew(id) { const l = byId(id); l.status = 'published'; l.confirmedAgo = 0; toast(t('t_renewed')); render(); },
+  pause(id) { byId(id).status = 'paused'; toast(t('t_paused')); render(); },
+  resume(id) { byId(id).status = 'published'; toast(t('t_resumed')); render(); },
+  'mark-rented'(id) { byId(id).status = 'rented'; toast(t('t_rented')); render(); },
+  archive(id) { byId(id).status = 'archived'; if (S.editId === id) startNew(); toast(t('t_archived')); render(); },
+  edit(id) { S.draft = formFromListing(byId(id)); S.editId = id; S.step = 1; S.errors = {}; S.submitted = false; go('#/post'); },
+  approve(id) { const l = byId(id); l.status = 'published'; l.confirmedAgo = 0; l.createdAgo = 0; toast(t('t_approved')); render(); },
+  'mod-changes'(id) { reasonDialog(id, 'changes'); },
+  'mod-reject'(id) { reasonDialog(id, 'rejected'); },
+  'rep-hide'(id) {  /* hiding closes every open report on that listing */
+    const lid = REPORTS.find(x => x.id === id).listing;
+    for (const r of REPORTS) if (r.listing === lid) r.open = false;
+    byId(lid).hidden = true; toast(t('t_hidden')); render();
+  },
+  'rep-dismiss'(id) { REPORTS.find(x => x.id === id).open = false; toast(t('t_dismissed')); render(); }
+};
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const fn = A[el.dataset.act];
+  if (fn) { e.preventDefault(); fn(el.dataset.id, el); }
+});
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (el.dataset.filter) { const f = readFilters(parse().q); f[el.dataset.filter] = el.value; writeFilters(f); return; }
+  if (el.dataset.amen) { const a = S.draft.amen, k = el.dataset.amen; if (el.checked) a.push(k); else a.splice(a.indexOf(k), 1); return; }
+  if (el.dataset.field === 'advNone') { S.draft.advNone = el.checked; if (el.checked) S.draft.advance = ''; render(); return; }
+  if (el.dataset.other && el.dataset.k === 'rec') { S.draft.others[+el.dataset.other].rec = el.value === '1'; refreshPreview(); return; }
+  if (el.dataset.field && el.tagName === 'SELECT') { S.draft[el.dataset.field] = el.value; if (S.errors[el.dataset.field]) { delete S.errors[el.dataset.field]; render(); } }
+});
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.dataset.field && el.dataset.field !== 'advNone' && el.tagName !== 'SELECT') { S.draft[el.dataset.field] = el.value; refreshPreview(); }
+  if (el.dataset.other && el.dataset.k !== 'rec') { S.draft.others[+el.dataset.other][el.dataset.k] = el.value; refreshPreview(); }
+});
+function refreshPreview() { const p = $('#draft-receipt'); if (p) p.innerHTML = receipt(Object.assign(previewListing(), draftListing())); }
+
+document.addEventListener('submit', e => {
+  const f = e.target; e.preventDefault();
+  if (f.id === 'home-search') {
+    const fd = new FormData(f), q = {}; for (const k of ['area', 'max', 'beds']) q[k] = fd.get(k) || ''; writeFilters(q); return;
+  }
+  if (f.id === 'signin-form') {
+    const ph = toLatin($('#s-phone').value.trim()).replace(/[\s-]/g, ''), pw = $('#s-pass').value;
+    const okP = /^(?:\+?880|0)1[3-9]\d{8}$/.test(ph), okW = pw.length >= 8;
+    const okN = !S.signup || $('#s-name').value.trim().length > 0;
+    const taken = S.signup && okP && Object.values(PEOPLE).some(x => x.phone === '0' + ph.slice(-10));
+    $('#s-phone-err').textContent = t(taken ? 'phone_taken' : 'phone_err');
+    $('#s-phone-err').hidden = okP && !taken; $('#s-pass-err').hidden = okW;
+    $('#s-phone').setAttribute('aria-invalid', String(!okP || taken)); $('#s-pass').setAttribute('aria-invalid', String(!okW));
+    if (S.signup) { $('#s-name-err').hidden = okN; $('#s-name').setAttribute('aria-invalid', String(!okN)); }
+    if (!okP || !okW || !okN || taken) return;
+    S.signedIn = true; closeDialog(); toast(t('signed_in'));
+    const p = S.pending; S.pending = null;
+    if (p && p.k === 'post') { S.role = 'owner'; go('#/post'); return; }
+    if (p && p.k === 'save') { S.saved.add(p.id); toast(t('toast_saved')); }
+    render(); return;
+  }
+  if (f.id === 'report-form') {
+    const r = f.querySelector('input[name="reason"]:checked');
+    $('#r-err').hidden = !!r; if (!r) return;
+    const det = $('#r-details').value.trim();
+    REPORTS.unshift({ id: 'R' + Date.now(), listing: f.dataset.id, reason: r.value, hours: 0.2, open: true, details: { bn: det, en: det } });
+    closeDialog(); toast(t('report_sent')); return;
+  }
+  if (f.id === 'reason-form') {
+    const txt = $('#m-reason').value.trim();
+    $('#m-err').hidden = txt.length > 0; if (!txt) return;
+    const l = byId(f.dataset.id); l.status = f.dataset.kind; l.reason = { bn: txt, en: txt };
+    closeDialog(); toast(t(f.dataset.kind === 'changes' ? 't_changes' : 't_rejected')); render();
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && S.filtersOpen) { S.filtersOpen = false; render(); } });
+window.addEventListener('hashchange', () => {
+  S.filtersOpen = false;
+  if (!location.hash.startsWith('#/post')) {
+    S.submitted = false;
+    if (S.editId && !liveEdit()) autosave();
+    const l = S.editId && byId(S.editId);
+    if (l && l.status !== 'draft') startNew();
+  }
+  render();
+});
+render();
+</script>
+</body>
+</html>

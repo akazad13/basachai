@@ -1,6 +1,6 @@
 # Deploy and operations
 
-How the API runs on one VPS, and how to set it up, release, back up, restore and check it. The rules behind this are in [security and operations](../../specs/tech/security-and-operations.md). The web app deploys separately, through Netlify (`netlify.toml`).
+How the API runs on one VPS, and how to set it up, release, back up, restore and check it. The rules behind this are in [security and operations](../docs/specs/tech/security-and-operations.md). The web app deploys separately, through Netlify (`netlify.toml`).
 
 | File | What it does |
 | --- | --- |

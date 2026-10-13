@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bangla Font Specimens</title>
+<meta name="description" content="Bangla fonts used by popular Bangladeshi sites and free web fonts, set in BasaChai text for comparison.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;700&family=Atma:wght@400;700&family=Baloo+Da+2:wght@400;700&family=Galada&family=Hind+Siliguri:wght@400;700&family=Mina:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&family=Noto+Serif+Bengali:wght@400;700&family=Tiro+Bangla&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- Free Ekushey/Omicron fonts used on bdnews24 and as Prothom Alo's fallback, served by a community CDN -->
+<link href="https://fonts.maateen.me/solaiman-lipi/font.css" rel="stylesheet">
+<link href="https://fonts.maateen.me/siyam-rupali/font.css" rel="stylesheet">
+<link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F4F6F2; --surface: #FFFFFF; --ink: #17231F; --muted: #586861; --line: #D8E0DA;
+    --green: #0F5E50; --green-tint: #E2EEEA; --on-green: #FFFFFF; --brass: #B7862A; --brass-tint: #F5EBD5; --red: #A63D2A; --red-tint: #F6E3DE;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0F1715; --surface: #16211E; --ink: #E6EEEA; --muted: #9DB0A8; --line: #2B3B36;
+      --green: #63C3AD; --green-tint: #173731; --on-green: #0B1412; --brass: #D9AE55; --brass-tint: #362C17; --red: #E68B75; --red-tint: #3B211B;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0F1715; --surface: #16211E; --ink: #E6EEEA; --muted: #9DB0A8; --line: #2B3B36;
+    --green: #63C3AD; --green-tint: #173731; --on-green: #0B1412; --brass: #D9AE55; --brass-tint: #362C17; --red: #E68B75; --red-tint: #3B211B;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 "Nunito", "Noto Sans Bengali", system-ui, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 40px 0 16px; }
+  h1 { font: 700 34px/1.2 "Baloo Da 2", "Noto Sans Bengali", sans-serif; margin: 0 0 8px; }
+  .intro { color: var(--muted); max-width: 70ch; margin: 0; }
+  :focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; border-radius: 6px; }
+
+  .controls { position: sticky; top: 0; z-index: 5; background: var(--paper); border-bottom: 1px solid var(--line); padding: 12px 0; }
+  .controls .wrap { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; }
+  .ctl label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
+  .ctl input[type="text"] { width: min(420px, 80vw); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font: 16px "Noto Sans Bengali", sans-serif; color: var(--ink); }
+  .ctl input[type="range"] { width: 160px; accent-color: var(--green); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); padding: 2px; }
+  .seg button { border: 0; background: none; padding: 4px 12px; border-radius: 999px; cursor: pointer; color: var(--muted); font: inherit; font-size: 14px; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+  h2 { font: 700 22px/1.3 "Baloo Da 2", "Noto Sans Bengali", sans-serif; margin: 32px 0 4px; }
+  .group-note { color: var(--muted); margin: 0 0 14px; font-size: 15px; }
+  .grid { display: grid; gap: 14px; }
+  @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+  .font { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; gap: 10px; }
+  .font.current { border-color: var(--brass); box-shadow: inset 0 0 0 1px var(--brass); }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-content: space-between; }
+  .name { font-weight: 700; font-size: 17px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 12.5px; font-weight: 700; padding: 1px 9px; border-radius: 999px; background: var(--paper); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }
+  .tag.free { background: var(--green-tint); color: var(--green); border-color: transparent; }
+  .tag.closed { background: var(--red-tint); color: var(--red); border-color: transparent; }
+  .tag.cur { background: var(--brass-tint); color: var(--ink); border-color: var(--brass); }
+  .where { font-size: 14px; color: var(--muted); margin: 0; }
+  .sample .head { font-weight: 700; line-height: 1.35; font-size: calc(var(--size) * 1.6); overflow-wrap: anywhere; }
+  .sample .body { font-size: var(--size); line-height: 1.75; margin-top: 4px; }
+  .sample .money { font-weight: 700; font-size: calc(var(--size) * 1.5); }
+  .sample .conj { font-size: calc(var(--size) * 1.25); letter-spacing: .04em; color: var(--muted); }
+  .sample .latin { font-size: calc(var(--size) * .95); color: var(--muted); }
+  .missing { font-size: 13px; color: var(--red); display: none; }
+  .font.not-loaded .missing { display: block; }
+  .verdict { font-size: 14px; border-top: 1px dashed var(--line); padding-top: 8px; margin: 0; }
+  .closed-box { background: var(--surface); border: 1px dashed var(--line); border-radius: 14px; padding: 16px 18px; }
+  .closed-box p { margin: 0 0 8px; }
+  footer { color: var(--muted); font-size: 14px; padding: 32px 0 48px; }
+  footer p { max-width: 75ch; }
+</style>
+</head>
+<body>
+<header class="wrap">
+  <h1>বাংলা ফন্ট নমুনা</h1>
+  <p class="intro">Fonts found on popular Bangladeshi news sites (checked 13 October 2026) and free web fonts, each set in BasaChai text. Type your own text, change the size, or show only one group. Current prototype fonts are marked.</p>
+</header>
+
+<div class="controls" role="region" aria-label="Specimen controls">
+  <div class="wrap">
+    <div class="ctl"><label for="custom">নিজের লেখা দিন (Your text)</label><input id="custom" type="text" placeholder="যেমন: সুতিপাড়ায় ৩ শোবার ঘরের ফ্ল্যাট"></div>
+    <div class="ctl"><label for="size">Size: <span id="size-val">17</span> px</label><input id="size" type="range" min="13" max="26" value="17"></div>
+    <div class="ctl"><span id="show-lbl" style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:2px">Show</span>
+      <span class="seg" role="group" aria-labelledby="show-lbl">
+        <button data-show="all" aria-pressed="true">All</button>
+        <button data-show="body" aria-pressed="false">Body text</button>
+        <button data-show="display" aria-pressed="false">Headings only</button>
+      </span></div>
+  </div>
+</div>
+
+<main class="wrap" id="main"></main>
+
+<footer class="wrap">
+  <p>Sites checked in the browser: prothomalo.com, jugantor.com, kalerkantho.com and bangla.bdnews24.com. Other sites (BBC Bangla, Jago News, Bikroy, Samakal) were blocked in the browser and were not checked.</p>
+  <p>Google Fonts load from fonts.googleapis.com. SolaimanLipi, Siyam Rupali and Kalpurush load from the community CDN fonts.maateen.me; for production, self-host them under their own licence terms. A card marked "did not load" means the font could not be fetched in this browser, and the text shows in a fallback.</p>
+</footer>
+
+<script>
+const FONTS = [
+  { group: 'seen', name: 'Noto Serif Bengali', css: '"Noto Serif Bengali"', kind: 'body', tags: ['free', 'Serif', 'Google Fonts'], where: 'Used by Jugantor and Kaler Kantho for headlines and articles.', verdict: 'Formal newspaper feel. Very readable for long text; heavier than BasaChai needs.' },
+  { group: 'seen', name: 'SolaimanLipi', css: '"SolaimanLipi"', kind: 'body', tags: ['free', 'Sans', 'Ekushey'], where: 'Used by bdnews24 Bangla for everything.', verdict: 'The most familiar Bangla screen font. Plain and dependable, but looks dated in headings.' },
+  { group: 'seen', name: 'Siyam Rupali', css: '"Siyam Rupali"', kind: 'body', tags: ['free', 'Sans'], where: 'Prothom Alo\'s fallback font; also in Jugantor\'s fallback list.', verdict: 'Clean and compact. Good body font, limited weights.' },
+  { group: 'seen', name: 'Kalpurush', css: '"Kalpurush"', kind: 'body', tags: ['free', 'Sans', 'Ekushey'], where: 'A widely installed free Unicode font in Bangladesh (not seen on the sites checked).', verdict: 'Familiar to Bangladeshi readers; rounder than SolaimanLipi.' },
+  { group: 'free', name: 'Noto Sans Bengali', css: '"Noto Sans Bengali"', kind: 'body', current: 'Prototype body text', tags: ['free', 'Sans', 'Google Fonts'], where: 'Google\'s Noto family. Full weight range and reliable conjuncts.', verdict: 'Safest body choice for UI: clear at small sizes, many weights.' },
+  { group: 'free', name: 'Baloo Da 2', css: '"Baloo Da 2"', kind: 'display', current: 'Prototype headings and money', tags: ['free', 'Rounded', 'Google Fonts'], where: 'Rounded, friendly display face by Ek Type.', verdict: 'Warm and approachable for headings and prices; too soft for long body text.' },
+  { group: 'free', name: 'Hind Siliguri', css: '"Hind Siliguri"', kind: 'body', tags: ['free', 'Sans', 'Google Fonts'], where: 'Popular on Bangladeshi startup and app sites.', verdict: 'Light and modern. Thin at small sizes on low-end Android screens.' },
+  { group: 'free', name: 'Anek Bangla', css: '"Anek Bangla"', kind: 'both', tags: ['free', 'Sans', 'Variable', 'Google Fonts'], where: 'Variable width and weight, by Ek Type.', verdict: 'Contemporary and sturdy; works for both headings and body.' },
+  { group: 'free', name: 'Tiro Bangla', css: '"Tiro Bangla"', kind: 'body', tags: ['free', 'Serif', 'Google Fonts'], where: 'Traditional book-style serif by Tiro Typeworks.', verdict: 'Literary and elegant; one weight only, so limited for UI.' },
+  { group: 'free', name: 'Mina', css: '"Mina"', kind: 'display', tags: ['free', 'Sans', 'Google Fonts'], where: 'Geometric sans with a technical feel.', verdict: 'Crisp headings; looks mechanical in paragraphs.' },
+  { group: 'free', name: 'Atma', css: '"Atma"', kind: 'display', tags: ['free', 'Informal', 'Google Fonts'], where: 'Hand-drawn feel, informal.', verdict: 'Playful; suits banners or promotions, not core UI.' },
+  { group: 'free', name: 'Galada', css: '"Galada"', kind: 'display', tags: ['free', 'Script', 'Google Fonts'], where: 'Calligraphic display face.', verdict: 'Logo or festival use only; hard to read at small sizes.' }
+];
+const DEFAULT_HEAD = 'বাসা খুঁজুন। মালিকের সাথে সরাসরি কথা বলুন।';
+const BODY = 'ধামরাই পৌরসভায় ২ শোবার ঘরের ফ্ল্যাট। বাজার ও বাসস্ট্যান্ড হাঁটা দূরত্বে, দক্ষিণমুখী বারান্দা। নম্বর যাচাই করা হয়নি; বাসা দেখার আগে কোনো টাকা পাঠাবেন না।';
+const MONEY = 'মাসে মোট ৳১৪,০৮০';
+const CONJ = 'ক্ষ ত্র জ্ঞ ন্ত্র ষ্ট শ্চ ক্স র্ক্ষ্য দ্ধ ঙ্গ ০১২৩৪৫৬৭৮৯';
+const LATIN = 'Find a home in Dhamrai. Total per month ৳14,080';
+let show = 'all';
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function tagHtml(t) { return `<span class="tag${t === 'free' ? ' free' : ''}">${t === 'free' ? 'Free to use' : esc(t)}</span>`; }
+function card(f) {
+  const head = document.getElementById('custom').value.trim() || DEFAULT_HEAD;
+  return `<article class="font${f.current ? ' current' : ''}" data-font="${esc(f.name)}" style="font-family:${f.css}, 'Noto Sans Bengali', sans-serif">
+    <div class="meta" style="font-family:Nunito, 'Noto Sans Bengali', sans-serif"><span class="name">${esc(f.name)}</span>
+      <span class="tags">${f.current ? `<span class="tag cur">${esc(f.current)}</span>` : ''}${f.tags.map(tagHtml).join('')}</span></div>
+    <p class="where" style="font-family:Nunito, sans-serif">${esc(f.where)}</p>
+    <p class="missing" style="font-family:Nunito, sans-serif">This font did not load in this browser, so a fallback is shown.</p>
+    <div class="sample">
+      <div class="head">${esc(head)}</div>
+      ${show === 'display' ? '' : `<p class="body">${BODY}</p>`}
+      <div class="money">${MONEY}</div>
+      <div class="conj">${CONJ}</div>
+      <div class="latin">${LATIN}</div>
+    </div>
+    <p class="verdict" style="font-family:Nunito, sans-serif"><strong>For BasaChai:</strong> ${esc(f.verdict)}</p>
+  </article>`;
+}
+function keep(f) { return show === 'all' || f.kind === 'both' || f.kind === show; }
+function render() {
+  const seen = FONTS.filter(f => f.group === 'seen' && keep(f));
+  const free = FONTS.filter(f => f.group === 'free' && keep(f));
+  document.getElementById('main').innerHTML = `
+    <h2>Seen on popular Bangla sites</h2>
+    <p class="group-note">Fonts loaded by the news sites checked in the browser. All of these are free to use except Shurjo.</p>
+    <div class="grid">${seen.map(card).join('')}</div>
+    <div class="closed-box" style="margin-top:14px">
+      <p><span class="tag closed">Not available</span> <strong>Shurjo</strong>, Prothom Alo's own typeface, used for all their headlines and body text.</p>
+      <p class="where">It is custom-made for Prothom Alo, so it is not shown here and can't be used for BasaChai. Siyam Rupali, above, is the fallback their site names.</p>
+    </div>
+    <div class="closed-box" style="margin-top:14px">
+      <p><span class="tag closed">Avoid</span> <strong>SutonnyMJ</strong>, which appears in Jugantor's fallback list.</p>
+      <p class="where">It is a legacy Bijoy (non-Unicode) font. Text typed in it is not real Bangla Unicode, so search, copy-paste and screen readers break. Never use it on the web.</p>
+    </div>
+    <h2>Other free Bangla web fonts</h2>
+    <p class="group-note">All on Google Fonts, free for commercial use, and loadable without self-hosting.</p>
+    <div class="grid">${free.map(card).join('')}</div>`;
+  document.documentElement.style.setProperty('--size', document.getElementById('size').value + 'px');
+  checkLoaded();
+}
+async function checkLoaded() {
+  // Ask for each face explicitly so the result does not depend on layout timing.
+  const results = await Promise.all(FONTS.map(f =>
+    Promise.all([document.fonts.load(`400 16px ${f.css}`, 'বাসা'), document.fonts.load(`700 16px ${f.css}`, 'বাসা')])
+      .then(r => r.flat().length > 0).catch(() => false)));
+  FONTS.forEach((f, i) => {
+    const el = document.querySelector(`.font[data-font="${f.name}"]`);
+    if (el) el.classList.toggle('not-loaded', !results[i]);
+  });
+}
+document.getElementById('custom').addEventListener('input', render);
+document.getElementById('size').addEventListener('input', e => { document.getElementById('size-val').textContent = e.target.value; document.documentElement.style.setProperty('--size', e.target.value + 'px'); });
+document.querySelectorAll('[data-show]').forEach(b => b.addEventListener('click', () => {
+  show = b.dataset.show;
+  document.querySelectorAll('[data-show]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  render();
+}));
+render();
+</script>
+</body>
+</html>
