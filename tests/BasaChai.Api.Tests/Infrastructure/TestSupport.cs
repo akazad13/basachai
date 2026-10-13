@@ -140,3 +140,19 @@ public sealed class FakePhotoStore : IPhotoStore
 
     public void Reset() { lock (Uploaded) Uploaded.Clear(); lock (Deleted) Deleted.Clear(); Usage = null; UsageFails = false; }
 }
+
+/// <summary>Records page purges instead of calling the web app.</summary>
+public sealed class FakePageCache : IPageCache
+{
+    private readonly List<(string[] Listings, bool Everything)> _calls = [];
+
+    public Task InvalidateAsync(IReadOnlyCollection<string> listingShortIds, bool everything = false)
+    {
+        lock (_calls) _calls.Add((listingShortIds.ToArray(), everything));
+        return Task.CompletedTask;
+    }
+
+    public (string[] Listings, bool Everything)[] Calls { get { lock (_calls) return [.. _calls]; } }
+    public bool Purged(string shortId) => Calls.Any(c => c.Everything || c.Listings.Contains(shortId));
+    public void Reset() { lock (_calls) _calls.Clear(); }
+}

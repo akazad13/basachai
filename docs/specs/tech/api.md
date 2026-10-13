@@ -11,7 +11,7 @@ Version 1.0 · 13 October 2026
 - Lists use keyset cursors: `cursor` and `size` (max 24); responses include `nextCursor`.
 - Money is whole taka integers. Dates are ISO 8601 UTC.
 - Public GET responses send `Cache-Control: public, s-maxage=60`.
-- Search requests from the web app send `X-Search-Source: home` or `search` for analytics. `search_performed` is recorded once per search: not for "Show more" pages (a `cursor` is present) or for `X-Search-Source: none` (the home page's recent homes). The web server forwards the browser's visit id (`bc_visit` cookie) as `X-Session-Id`, so searches it renders and reveals in the browser share a session.
+- `GET /listings` records `search_performed` when called with `X-Search-Source: home` or `search` (API clients). The web app's server renders send `X-Search-Source: none` and the browser reports the search through `POST /events` instead. It is recorded once per search: not for "Show more" pages (a `cursor` is present). Browser calls send the visit id (`bc_visit` cookie) as `X-Session-Id`, so a visit's searches and reveals share a session.
 - Test-only hooks under `/v1/test/*` exist only in the Test and Staging environments; see [quality and testing](quality-and-testing.md#test-hooks). Staging requires the `X-Test-Key` header (`Test:HookKey`), and seeding refuses a database whose name does not contain "test" or "staging".
 
 ## Public
@@ -26,7 +26,7 @@ Version 1.0 · 13 October 2026
 | GET | `/locations/suggest?q=` | Spelling-tolerant area suggestions |
 | GET | `/property-types`, `/amenities` | Configured lists |
 | GET | `/home` | `{ costExample: { card, oneTimeCosts } }` for the home page |
-| POST | `/events` | Client analytics events (`listing_viewed`), 300 per IP per hour |
+| POST | `/events` | Client analytics events, 300 per IP per hour: `listing_viewed` (`listingId`, `referrer`) and `search_performed` (`query`, `resultCount`, `source`), which the web app sends for each search it shows because the page may come from the edge cache. The query is parsed like a search, so only known filters are stored |
 
 A listing that was never public (draft, in review, rejected before going live) returns 404 to visitors. One that was public but is no longer Live returns `{ available: false, status }` with no details. Its owner and staff get the full detail with `available: false`, for previews.
 

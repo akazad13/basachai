@@ -440,7 +440,7 @@ CREATE INDEX ix_aliases_trgm   ON location_aliases USING gin (normalized gin_trg
           <tr><td>502</td><td><code>photo_store_unavailable</code></td></tr>
         </tbody>
       </table></div>
-      <p>Search requests from the web app send <code>X-Search-Source: home</code> or <code>search</code>, which the API stores on the <code>search_performed</code> event. The full contract is in the <a href="specs/tech/api.md">API spec</a>.</p>
+      <p>The browser reports each search it shows to <code>POST /v1/events</code> (<code>search_performed</code> with source <code>home</code> or <code>search</code>), so pages served from the edge cache are still counted. Home, area and property pages are cached for 60 seconds and purged by the API through the web app's <code>/api/revalidate</code> when a visitor-visible change is saved. The full contract is in the <a href="specs/tech/api.md">API spec</a>.</p>
     </section>
 
     <!-- 9 -->
@@ -541,7 +541,7 @@ LIMIT @size;   -- at most 24</code></pre>
         <li><code>POST /listings/{shortId}/contact</code> needs no login. Starting limits: 10 reveals per hour and 30 per day per IP and device. These are placeholders until the PRD's open item on limits is settled.</li>
         <li>The client IP is read from <code>CF-Connecting-IP</code>, which the API trusts only because the firewall accepts traffic from Cloudflare's IP ranges alone.</li>
         <li>Limits reset if the API restarts. That is acceptable for an MVP; Redis fixes it post-MVP.</li>
-        <li>Events (<code>search_performed</code>, <code>listing_viewed</code>, <code>contact_revealed</code>, <code>listing_submitted</code>, <code>listing_published</code>, <code>report_created</code>) are inserted in the same request. <code>search_performed</code> records its source (home or search) from the <code>X-Search-Source</code> header. Admin metrics are computed by SQL when the dashboard opens; no nightly rollup.</li>
+        <li>Events (<code>search_performed</code>, <code>listing_viewed</code>, <code>contact_revealed</code>, <code>listing_submitted</code>, <code>listing_published</code>, <code>report_created</code>) are inserted in the same request. <code>search_performed</code> is reported by the browser with its source (home or search). Admin metrics are computed by SQL when the dashboard opens; no nightly rollup.</li>
       </ul>
     </section>
 

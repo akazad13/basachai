@@ -47,9 +47,11 @@ The Playwright files are copied from the specs: change a test in its spec, then 
 | `Hashing:Salt` | API | Required in Production (16+ characters); salts IP and device hashes |
 | `Auth:CookieDomain` | API | `.{domain}` so the web app and API share the session |
 | `Web:Origin` | API | CORS origin and reset-link base |
+| `Web:RevalidateUrl`, `Web:RevalidateSecret` | API | The web app's `/api/revalidate`, to purge cached pages after changes |
 | `Cloudinary:CloudName`, `ApiKey`, `ApiSecret`, `UploadPreset` | API | Photo storage (signed preset with the 1,600 px incoming transformation) |
 | `DataProtection:KeyPath` | API | Persist the key ring (it decrypts stored addresses) and back it up |
 | `Network:KnownProxies` | API | Caddy's address, so forwarded headers are trusted |
 | `Test:HookKey` | API | Required in Staging; test hooks then need the `X-Test-Key` header |
 | `NEXT_PUBLIC_API_URL`, `API_URL` | Web | Browser and server-side API base URLs |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD` | Web | Builds photo URLs |
+| `REVALIDATE_SECRET` | Web | Same value as the API's `Web:RevalidateSecret` |

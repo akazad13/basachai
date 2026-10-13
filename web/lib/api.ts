@@ -19,13 +19,26 @@ async function toError(res: Response): Promise<ApiError> {
   return new ApiError({ status: res.status, code: body.code ?? 'error_generic', title: body.title, errors: body.errors, retryAfter: body.retryAfter });
 }
 
+/** How long the edge keeps the home, area and property pages (content-and-localization spec, SEO). */
+export const PAGE_SECONDS = 60;
+
 /**
- * Server-side GET for public data. Never cached by Next.js: results must match the database (tests reseed it)
- * and each search records an analytics event. Edge caching is done by the CDN from the API's Cache-Control.
+ * Cache tags, so the API can purge exactly what changed (app/api/revalidate). Every cached read also carries `pages`,
+ * which purges every page built from API data and leaves the static pages alone.
  */
-export async function serverGet<T>(path: string, init: { headers?: Record<string, string> } = {}): Promise<T> {
+export const TAGS = { pages: 'pages', listings: 'listings', reference: 'reference', listing: (shortId: string) => `listing:${shortId}` };
+
+/**
+ * Server-side GET for public data. With `revalidate`, the result is cached with the page (incremental regeneration,
+ * served from the edge) under the given tags; the API purges those tags when the data changes. Without it, the
+ * request is made fresh every time (signed-in previews, /search).
+ */
+export async function serverGet<T>(path: string, init: { headers?: Record<string, string>; revalidate?: number; tags?: string[] } = {}): Promise<T> {
   const base = process.env.API_URL ?? PUBLIC_API;
-  const res = await fetch(base + path, { cache: 'no-store', headers: { Accept: 'application/json', ...init.headers } });
+  const headers = { Accept: 'application/json', ...init.headers };
+  const res = await fetch(base + path, init.revalidate
+    ? { headers, next: { revalidate: init.revalidate, tags: [TAGS.pages, ...(init.tags ?? [])] } }
+    : { headers, cache: 'no-store' });
   if (!res.ok) throw await toError(res);
   return res.json() as Promise<T>;
 }

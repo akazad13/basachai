@@ -26,6 +26,9 @@ const csp = [
 const nextConfig: NextConfig = {
   // Cloudinary resizes photos; Next.js image optimisation stays off so Netlify does not bill for it.
   images: { unoptimized: true },
+  // Cached pages are refreshed in the background after 60 s; after 5 minutes without visits they are rendered fresh
+  // rather than served stale, which bounds changes no purge covers (a listing passing its expiry time).
+  expireTime: 300,
   poweredByHeader: false,
   async headers() {
     return [{

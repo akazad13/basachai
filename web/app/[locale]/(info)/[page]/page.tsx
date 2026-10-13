@@ -14,6 +14,7 @@ const PAGES = {
 } as const;
 type PageKey = keyof typeof PAGES;
 
+// Only the pages above exist, so unknown names are a 404 that is never cached per URL.
 export const dynamicParams = false;
 export function generateStaticParams() {
   return routing.locales.flatMap(locale => Object.keys(PAGES).map(page => ({ locale, page })));

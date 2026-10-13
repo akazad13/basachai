@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition, type ReactNode } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { api } from '@/lib/api';
@@ -10,17 +9,21 @@ import type { Area, SearchPage } from '@/lib/types';
 import { ListingCard, areaName } from '@/components/listing-card';
 import { readFilters, SORTS, toQuery, type FilterKey, type Filters } from './filters';
 
+const HOME_COOKIE = 'bc_src';
+
 const SORT_LABEL: Record<(typeof SORTS)[number], string> = { confirmed: 'sort_confirmed', newest: 'sort_newest', rent_asc: 'sort_low', rent_desc: 'sort_high' };
 
-/** `area` is set on an area page (/rent/dhaka/dhamrai/{area}): the area comes from the path, and changes continue on /search. */
-export function SearchView({ initial, areas, area: pathArea }: { initial: SearchPage | null; areas: Area[]; area?: string }) {
+/**
+ * The results and filters. `filters` come from the server page (not read from the URL here, so the cached area pages
+ * stay cacheable). `area` is set on an area page (/rent/dhaka/dhamrai/{area}): the area comes from the path, and
+ * changes continue on /search.
+ */
+export function SearchView({ initial, areas, filters: f, area: pathArea }: { initial: SearchPage | null; areas: Area[]; filters: Filters; area?: string }) {
   const t = useTranslations();
   const lang = useLocale() as Lang;
   const router = useRouter();
   const currentPath = usePathname();
   const pathname = pathArea ? '/search' : currentPath;
-  const params = useSearchParams();
-  const f = readFilters(k => (k === 'area' && pathArea ? pathArea : params.get(k)));
   const [pending, startTransition] = useTransition();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [items, setItems] = useState(initial?.items ?? []);
@@ -35,6 +38,23 @@ export function SearchView({ initial, areas, area: pathArea }: { initial: Search
 
   // "Back to results" on a property page returns here with the same filters.
   const query = toQuery(f);
+
+  // Each search shown is reported from here, not by the server render, which may come from the edge cache.
+  // The home form leaves a 10-second cookie so its search is recorded with source "home" (analytics spec).
+  useEffect(() => {
+    if (!initial) return;
+    const key = `bc_searched:${query}`;
+    try {
+      const at = Number(sessionStorage.getItem(key));
+      if (at && Date.now() - at < 30 * 60_000) return;
+      sessionStorage.setItem(key, String(Date.now()));
+    } catch { /* storage blocked: count it */ }
+    const fromHome = document.cookie.split('; ').includes(`${HOME_COOKIE}=home`);
+    if (fromHome) document.cookie = `${HOME_COOKIE}=; path=/; max-age=0`;
+    void api('/v1/events', {
+      method: 'POST', json: { name: 'search_performed', query, resultCount: initial.count, source: fromHome ? 'home' : 'search' },
+    }).catch(() => {});
+  }, [initial, query]);
   useEffect(() => {
     try { sessionStorage.setItem('bc_last_search', '/search' + (query ? '?' + query : '')); } catch { /* storage blocked */ }
   }, [query]);

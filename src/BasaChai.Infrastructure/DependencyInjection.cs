@@ -22,7 +22,7 @@ public static class DependencyInjection
     public static IServiceCollection AddBasaChai(this IServiceCollection services, IConfiguration config, IHostEnvironment env)
     {
         var cs = config.GetConnectionString("Main") ?? throw new InvalidOperationException("ConnectionStrings:Main is not set.");
-        services.AddDbContext<AppDbContext>(o => o.UseNpgsql(cs).UseSnakeCaseNamingConvention());
+        services.AddDbContext<AppDbContext>(o => o.UseNpgsql(cs).UseSnakeCaseNamingConvention().AddInterceptors(new PurgeAfterCommit()));
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 
         if (env.HasTestHooks())
@@ -58,6 +58,21 @@ public static class DependencyInjection
             services.AddSingleton<IPhotoStore>(local);
         }
         else services.AddSingleton<IPhotoStore, UnconfiguredPhotoStore>();
+
+        // Edge-cached web pages are purged after visible changes (AppDbContext.SaveChangesAsync).
+        // Test and Staging purge inline, so a test's next page load is never stale; elsewhere a background queue sends
+        // the purges, so no save waits on the web host.
+        if (config["Web:RevalidateUrl"] is { Length: > 0 } revalidateUrl)
+        {
+            if (config["Web:RevalidateSecret"] is not { Length: >= 16 } revalidateSecret)
+                throw new InvalidOperationException("Web:RevalidateSecret must be set (16+ characters) when Web:RevalidateUrl is.");
+            var inline = env.HasTestHooks();
+            services.AddSingleton(sp => new WebPageCache(new HttpClient { Timeout = TimeSpan.FromSeconds(3) }, revalidateUrl, revalidateSecret,
+                inline, sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<WebPageCache>>()));
+            services.AddSingleton<IPageCache>(sp => sp.GetRequiredService<WebPageCache>());
+            services.AddHostedService(sp => sp.GetRequiredService<WebPageCache>());
+        }
+        else services.AddSingleton<IPageCache, NoPageCache>();
 
         services.AddScoped<PublicListingService>();
         services.AddScoped<OwnerListingService>();

@@ -2,6 +2,10 @@ import { setRequestLocale } from 'next-intl/server';
 import type { Lang } from '@/lib/format';
 import { ListingPage, listingMetadata } from '../listing-page';
 
+// Served from the edge for 60 seconds, and purged by the API when the listing changes.
+export const revalidate = 60;
+export function generateStaticParams() { return []; }   // rendered on first request, then cached
+
 type Params = { params: Promise<{ locale: string; shortId: string }> };
 
 export async function generateMetadata({ params }: Params) {

@@ -97,6 +97,9 @@ if (args.FirstOrDefault() == "cloudinary-setup")
     return;
 }
 
+if (env.IsProduction() && app.Services.GetRequiredService<BasaChai.Application.Common.IPageCache>() is BasaChai.Infrastructure.Services.NoPageCache)
+    app.Logger.LogWarning("Web:RevalidateUrl is not set: cached pages will not be purged after changes (they refresh within 60 seconds).");
+
 if (migrateOnly)
 {
     await DependencyInjection.MigrateAsync(app.Services, apiRole: config["Database:ApiRole"], allowTruncate: env.HasTestHooks());

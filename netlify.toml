@@ -1,5 +1,7 @@
 # The web app on Netlify (architecture spec). Netlify's Next.js runtime is added automatically.
-# Set NEXT_PUBLIC_API_URL, API_URL, NEXT_PUBLIC_SITE_URL and NEXT_PUBLIC_CLOUDINARY_CLOUD in the site settings.
+# Set NEXT_PUBLIC_API_URL, API_URL, NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_CLOUDINARY_CLOUD and REVALIDATE_SECRET in the
+# site settings. The home, area and property pages are cached at Netlify's edge for 60 seconds and purged by the API;
+# do not add a Cloudflare cache rule for HTML, or purges would not reach that cache.
 [build]
   base = "web"
   command = "npm run build"

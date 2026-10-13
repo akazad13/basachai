@@ -1,7 +1,6 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useSearchParams } from 'next/navigation';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
 import { num, type Lang } from '@/lib/format';
 import { api } from '@/lib/api';
@@ -14,13 +13,13 @@ export function Header() {
   const lang = useLocale() as Lang;
   const other: Lang = lang === 'bn' ? 'en' : 'bn';
   const pathname = usePathname();
-  const search = useSearchParams();
   const router = useRouter();
   const { me, ready, isOwner, isStaff, attention, openSignIn } = useSession();
   const current = (p: string) => (pathname === p || pathname.startsWith(p + '/') ? 'page' : undefined);
 
   async function switchLanguage() {
-    const query = Object.fromEntries(search.entries());
+    // Read here, not with useSearchParams: the header is on cached pages, which must not depend on the query.
+    const query = Object.fromEntries(new URLSearchParams(window.location.search).entries());
     if (me) void api('/v1/me', { method: 'PATCH', json: { locale: other } }).catch(() => {});
     router.replace({ pathname, query }, { locale: other });
   }

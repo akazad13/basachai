@@ -1,21 +1,24 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { serverGet } from '@/lib/api';
+import { PAGE_SECONDS, serverGet, TAGS } from '@/lib/api';
 import type { Card, Locations, OneTimeLine, SearchPage } from '@/lib/types';
 import { CostBreakdown } from '@/components/cost-breakdown';
 import { EyeIcon } from '@/components/icons';
 import { ListingCard } from '@/components/listing-card';
 import { HomeSearch } from './home-search';
 
-// Live data on every request (listings change, and each search is recorded); the CDN caches for 60 s.
-export const dynamic = 'force-dynamic';
+// Served from the edge for 60 seconds, and purged by the API when a listing or setting it shows changes.
+export const revalidate = 60;
 
 async function load() {
+  const cached = (tags: string[]) => ({ revalidate: PAGE_SECONDS, tags });
   const [recent, home, locations] = await Promise.allSettled([
-    serverGet<SearchPage>('/v1/listings?sort=confirmed&size=4', { headers: { 'X-Search-Source': 'none' } }),   // not a search
-    serverGet<{ costExample: { card: Card; oneTimeCosts: OneTimeLine[] } | null }>('/v1/home'),
-    serverGet<Locations>('/v1/locations'),
+    serverGet<SearchPage>('/v1/listings?sort=confirmed&size=4', { headers: { 'X-Search-Source': 'none' }, ...cached([TAGS.listings]) }),   // not a search
+    serverGet<{ costExample: { card: Card; oneTimeCosts: OneTimeLine[] } | null }>('/v1/home', cached([TAGS.listings, TAGS.reference])),
+    serverGet<Locations>('/v1/locations', cached([TAGS.reference])),
   ]);
+  // A cached page must not store an outage: throwing keeps the last good page (or shows the error page uncached).
+  for (const r of [recent, home, locations]) if (r.status === 'rejected') throw r.reason;
   return {
     recent: recent.status === 'fulfilled' ? recent.value.items : null,
     example: home.status === 'fulfilled' ? home.value.costExample : null,

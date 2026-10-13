@@ -119,7 +119,7 @@ export default function ModerationPage() {
                   <div className="mini-tiles">
                     {q.card.cover && <PhotoTile photo={q.card.cover} hue={hueFor(q.shortId)} size="card" />}
                   </div>
-                  <p className="hint" style={{ margin: 0 }}>{t('photos_count', { n: num(lang, q.card.photoCount) })} · <Link href={`/listing/${q.shortId}`}>{t('view_details')}</Link></p>
+                  <p className="hint" style={{ margin: 0 }}>{t('photos_count', { n: num(lang, q.card.photoCount) })} · <Link href={`/listing/${q.shortId}/preview`}>{t('view_details')}</Link></p>
                   {q.description && <p style={{ marginTop: 8 }}>{q.description}</p>}
                 </div>
                 <CostBreakdown card={q.card} oneTime={q.oneTimeCosts} title={false} />
@@ -143,7 +143,7 @@ export default function ModerationPage() {
                   <span className={`badge ${r.reason === 'suspicious' ? 'b-red' : 'b-brass'}`}>{t(`r_${r.reason}`)}</span>
                   <span className="hint">{t('reported_ago', { t: ageText(lang, r.createdAt) })}{r.overdue && <> <span className="badge b-red">{t('overdue')}</span></>}</span>
                 </div>
-                <h3 style={{ margin: '6px 0 0', fontSize: 16 }}><Link href={`/listing/${r.listingShortId}`}>{r.listingTitle}</Link></h3>
+                <h3 style={{ margin: '6px 0 0', fontSize: 16 }}><Link href={`/listing/${r.listingShortId}/preview`}>{r.listingTitle}</Link></h3>
                 {r.details && <blockquote>{r.details}</blockquote>}
                 <div className="acts">
                   <button type="button" className="btn btn-danger btn-sm" disabled={busy}

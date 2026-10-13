@@ -580,7 +580,7 @@
       <p>REST under <code>api.{domain}/v1</code>: public (listings, locations, contact, reports, events), account (auth, me, saved, attention count), owner (listings, actions, photos) and admin (stats, queue, actions, reports, users, configuration, audit). Full list in the <a href="BasaChai-Technical-Design-MVP.html#api">MVP technical design</a> and the <a href="specs/tech/api.md">API spec</a>.</p>
       <ul>
         <li><strong>Errors</strong> are ProblemDetails with a stable <code>code</code> the web app maps to Bangla and English, including <code>phone_taken</code> (409) when a number already has an account, <code>already_handled</code> when another moderator acted first and <code>rate_limited</code> with <code>retryAfter</code>.</li>
-        <li><strong>Search source:</strong> the web app sends <code>X-Search-Source: home</code> or <code>search</code> so <code>search_performed</code> records where a search started.</li>
+        <li><strong>Search source:</strong> the browser reports each search it shows (<code>POST /v1/events</code>, <code>search_performed</code>, source <code>home</code> or <code>search</code>), because the home, area and property pages are served from the edge cache and purged by the API on change.</li>
         <li><strong>Test hooks</strong> under <code>/v1/test/*</code> exist only in the Test and Staging environments and are absent from production builds.</li>
       </ul>
       <h3 id="testing">Testing</h3>

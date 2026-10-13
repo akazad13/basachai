@@ -112,9 +112,14 @@ The full message set is in the [prototype](../../BasaChai-Prototype.html) source
 
 | Page | URL | Rendering |
 | --- | --- | --- |
-| Area results | `/bn/rent/dhaka/dhamrai/{area}` | SSR, cached 60 s at the edge |
-| Property | `/bn/rent/dhaka/dhamrai/{area}/{slug}-{shortId}` | SSR, cached 60 s, purged on change |
-| Static pages | `/bn/safety`, `/bn/how-it-works`, `/bn/terms`, `/bn/privacy` | Static |
+| Home | `/bn` | SSR, cached 60 s at the edge, purged on change |
+| Area results | `/bn/rent/dhaka/dhamrai/{area}` | SSR, cached 60 s at the edge, purged on change; filters continue on `/search` |
+| Property | `/bn/rent/dhaka/dhamrai/{area}/{slug}-{shortId}` (and `/bn/listing/{shortId}`) | SSR, cached 60 s, purged on change |
+| Search | `/bn/search?...` | SSR on every request (any filter combination); not cached |
+| Owner or staff preview | `/bn/listing/{shortId}/preview` | SSR with the visitor's session, never cached, `noindex`; admin pages link here |
+| Static pages | `/bn/about`, `/bn/how-it-works`, `/bn/safety`, `/bn/support`, `/bn/terms`, `/bn/privacy` | Static; never purged |
+
+Caching uses Next.js incremental regeneration on Netlify's edge (`Cache-Control: s-maxage=60`). After any change a visitor could see (a Live listing's edit, photos or status, an approval, an owner's name, areas, types, amenities or the home cost example) the API asks the web app's `/api/revalidate` (signed with a shared secret) to drop the affected pages at once: the listing's page and the home and area lists, or every page built from API data (static pages are not touched). Drafts that were never public purge nothing. Purges inside a transaction are sent after it commits, and in production they go through a queue with one retry so no save waits on the web host. A page whose data cannot be loaded is not cached: the last good page stays. Changes no save triggers (a listing passing its expiry time) show within a few minutes: a page is refreshed in the background after 60 seconds, and after 5 minutes without visits it is rendered fresh instead of served stale. An area URL with filters in its query continues on `/search`. Cloudflare does not cache HTML (no cache rule), so the purge reaches the only cache.
 
 - Every property page: title, meta description, canonical URL, `hreflang` for bn and en, Open Graph image (cover photo).
 - Sitemap of live listings and area pages, regenerated hourly.
@@ -127,6 +132,7 @@ The full message set is in the [prototype](../../BasaChai-Prototype.html) source
 - **L10N-3** Given the toggle on a property page, then the same listing opens in the other language.
 - **L10N-4** Given a property page, then it has a canonical URL and `hreflang` links for both languages.
 - **L10N-5** Given a code search, then no UI string is hard-coded outside the message files.
+- **L10N-6** Given a purge of every page, then the static, home, area and property pages still load.
 
 ## Test cases
 
@@ -135,6 +141,7 @@ The full message set is in the [prototype](../../BasaChai-Prototype.html) source
 | L10N-TC01 | L10N-1 | Bangla: open search and D3's page | Count, money, bedrooms and revealed phone use only Bangla digits (no `[0-9]` inside `main` except in URLs) |
 | L10N-TC02 | L10N-2 | English: set A2's advance to 2,00,000 through the test hook; open A2 | Advance shows `৳2,00,000`; no Bangla digits inside `main` except owner-written text |
 | L10N-TC03 | L10N-3, L10N-4 | Open D3 in Bangla; press "English" | Same listing in English; page has a canonical link and `hreflang` links for `bn` and `en` |
+| L10N-TC04 | L10N-6 | Seed (which purges every page); open each static page, home, an area page and D3 | Each answers 200 with its heading |
 | L10N-CI01 | L10N-5 | CI lint | `eslint-plugin-i18next` rule `no-literal-string` passes on `web/app` and `web/components` |
 
 ### Automation
@@ -169,6 +176,17 @@ test('L10N-TC03 toggle keeps the listing; canonical and hreflang', async ({ page
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/en\/rent\/dhaka\/dhamrai\/dokkhin\/.+-D3$/);
   await expect(page.locator('link[rel="alternate"][hreflang="bn"]')).toHaveCount(1);
   await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveCount(1);
+});
+
+test('L10N-TC04 pages still load after every page was purged', async ({ page }, info) => {
+  const lang = info.project.name.slice(0, 2);
+  const paths = ['about', 'how-it-works', 'safety', 'support', 'terms', 'privacy'].map(p => `/${lang}/${p}`)
+    .concat([`/${lang}`, `/${lang}/rent/dhaka/dhamrai/dokkhin`, `/${lang}/listing/D3`]);
+  for (const path of paths) {
+    const response = await page.goto(path);
+    expect(response?.status(), path).toBe(200);
+    await expect(page.locator('main h1').first(), path).toBeVisible();
+  }
 });
 ```
 

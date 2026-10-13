@@ -18,6 +18,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     public FakeTimeProvider Clock { get; } = new(DateTimeOffset.Parse("2026-10-13T06:00:00Z"));
     public FakePhotoStore Photos { get; } = new();
+    public FakePageCache Pages { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -34,6 +35,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
             services.AddSingleton<IClockControl>(new FakeClockControl(Clock));
             services.RemoveAll<IPhotoStore>();
             services.AddSingleton<IPhotoStore>(Photos);
+            services.RemoveAll<IPageCache>();
+            services.AddSingleton<IPageCache>(Pages);
         });
     }
 

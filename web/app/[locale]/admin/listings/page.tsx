@@ -78,7 +78,7 @@ function AdminListings() {
               <tr key={r.id}>
                 <td>
                   <StatusBadge status={r.status} /> {r.isHidden && <span className="badge b-red">{t('hidden_banner')}</span>}
-                  <div><Link href={`/listing/${r.shortId}`}>{r.card.title}</Link> <span className="hint">{r.shortId}</span></div>
+                  <div><Link href={`/listing/${r.shortId}/preview`}>{r.card.title}</Link> <span className="hint">{r.shortId}</span></div>
                 </td>
                 <td>{areaName(lang, r.card.area)}</td>
                 <td>{r.ownerName}</td>

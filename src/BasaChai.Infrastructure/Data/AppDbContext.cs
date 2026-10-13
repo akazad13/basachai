@@ -9,7 +9,7 @@ using NpgsqlTypes;
 
 namespace BasaChai.Infrastructure.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options)
+public class AppDbContext(DbContextOptions<AppDbContext> options, IPageCache? pages = null)
     : IdentityDbContext<AppUser, AppRole, Guid>(options), IAppDbContext
 {
     public DbSet<Listing> Listings => Set<Listing>();
@@ -33,10 +33,87 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
     Task<int> IAppDbContext.SaveChangesAsync(CancellationToken ct) => SaveChangesAsync(ct);
 
-    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken ct = default)
+    public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken ct = default)
     {
         BumpVersions();
-        return base.SaveChangesAsync(acceptAllChangesOnSuccess, ct);
+        var visible = VisibleChanges();
+        var saved = await base.SaveChangesAsync(acceptAllChangesOnSuccess, ct);
+        if (pages is null || visible.IsEmpty) return saved;
+        var purge = await PagesToPurgeAsync(visible);
+        // Inside an explicit transaction the change is not visible yet: send the purge after the commit
+        // (PurgeAfterCommit), or a visitor could re-cache the old page in between.
+        if (Database.CurrentTransaction is not null) _pending = _pending is null ? purge : _pending.Merge(purge);
+        else await SendAsync(purge);
+        return saved;
+    }
+
+    private Purge? _pending;
+
+    internal async Task AfterCommitAsync()
+    {
+        var pending = _pending;
+        _pending = null;
+        if (pending is not null) await SendAsync(pending);
+    }
+
+    internal void AfterRollback() => _pending = null;
+
+    private sealed record Visible(HashSet<Guid> Listings, HashSet<Guid> Owners, bool Everything)
+    {
+        public bool IsEmpty => Listings.Count == 0 && Owners.Count == 0 && !Everything;
+    }
+
+    private sealed record Purge(HashSet<string> ShortIds, bool Everything)
+    {
+        public Purge Merge(Purge other) => new([.. ShortIds, .. other.ShortIds], Everything || other.Everything);
+    }
+
+    /// <summary>What a visitor could see change: listings (and their charges, photos, amenities), owner names, reference data.</summary>
+    private Visible VisibleChanges()
+    {
+        var v = new Visible([], [], false);
+        var everything = false;
+        foreach (var e in ChangeTracker.Entries().Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted))
+        {
+            switch (e.Entity)
+            {
+                case Listing l: v.Listings.Add(l.Id); break;
+                case ListingCharge c: v.Listings.Add(c.ListingId); break;
+                case ListingPhoto p: v.Listings.Add(p.ListingId); break;
+                case ListingAmenity a: v.Listings.Add(a.ListingId); break;
+                case AppUser u when e.State == EntityState.Modified && e.Property(nameof(AppUser.DisplayName)).IsModified: v.Owners.Add(u.Id); break;
+                case Location or LocationAlias or PropertyType or Amenity or AppSetting: everything = true; break;
+            }
+        }
+        return v with { Everything = everything };
+    }
+
+    /// <summary>
+    /// The pages to drop: listings that are or have been public (drafts never were, so their autosaves cost nothing).
+    /// Looked up right after the save, inside any transaction, so it sees this save's own changes.
+    /// </summary>
+    private async Task<Purge> PagesToPurgeAsync(Visible v)
+    {
+        if (v.Listings.Count == 0 && v.Owners.Count == 0) return new([], v.Everything);
+        try
+        {
+            var shortIds = await Listings.AsNoTracking()
+                .Where(l => (v.Listings.Contains(l.Id) || v.Owners.Contains(l.OwnerId)) && l.PublishedAt != null)
+                .Select(l => l.ShortId).ToListAsync(CancellationToken.None);
+            return new([.. shortIds], v.Everything);
+        }
+        catch (Exception)
+        {
+            // The change is saved; never fail the request over the purge. Not knowing which pages, drop them all.
+            return new([], true);
+        }
+    }
+
+    /// <summary>Not cancelled with the request: the change is already made.</summary>
+    private async Task SendAsync(Purge purge)
+    {
+        if (pages is null || (purge.ShortIds.Count == 0 && !purge.Everything)) return;
+        await pages.InvalidateAsync(purge.ShortIds, purge.Everything || purge.ShortIds.Count > 50);
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
@@ -217,4 +294,21 @@ public class HashSalt
     public string Period { get; set; } = "";   // yyyy-MM, UTC
     public string Salt { get; set; } = "";     // base64, 32 random bytes
     public DateTimeOffset CreatedAt { get; set; }
+}
+
+/// <summary>Runs the page purges a transaction collected once it commits, and drops them if it rolls back.</summary>
+public sealed class PurgeAfterCommit : Microsoft.EntityFrameworkCore.Diagnostics.DbTransactionInterceptor
+{
+    public override async Task TransactionCommittedAsync(System.Data.Common.DbTransaction transaction,
+        Microsoft.EntityFrameworkCore.Diagnostics.TransactionEndEventData eventData, CancellationToken cancellationToken = default)
+    {
+        if (eventData.Context is AppDbContext db) await db.AfterCommitAsync();
+    }
+
+    public override Task TransactionRolledBackAsync(System.Data.Common.DbTransaction transaction,
+        Microsoft.EntityFrameworkCore.Diagnostics.TransactionEndEventData eventData, CancellationToken cancellationToken = default)
+    {
+        if (eventData.Context is AppDbContext db) db.AfterRollback();
+        return Task.CompletedTask;
+    }
 }

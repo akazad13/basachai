@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { serverGet } from '@/lib/api';
+import { serverGet, TAGS } from '@/lib/api';
 import type { Card, Locations, SearchPage } from '@/lib/types';
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
@@ -14,7 +14,7 @@ async function liveListings(): Promise<Card[]> {
   let cursor: string | null = null;
   for (let i = 0; i < 200; i++) {
     const page: SearchPage = await serverGet<SearchPage>(`/v1/listings?sort=newest&size=24${cursor ? '&cursor=' + encodeURIComponent(cursor) : ''}`,
-      { headers: { 'X-Search-Source': 'none' } });
+      { headers: { 'X-Search-Source': 'none' }, revalidate: 3600, tags: [TAGS.listings] });
     cards.push(...page.items);
     cursor = page.nextCursor;
     if (!cursor) break;
@@ -31,9 +31,12 @@ function entry(path: (lang: string) => string, lastModified?: string): MetadataR
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // The build may not reach the API: it writes the fixed pages only, and the first refresh (or listing purge) fills
+  // in the rest. At run time failures throw, so an outage never replaces the sitemap with an empty one for an hour.
+  const building = process.env.NEXT_PHASE === 'phase-production-build';
   const [areas, cards] = await Promise.all([
-    serverGet<Locations>('/v1/locations').then(l => l.areas, () => []),
-    liveListings().catch(() => [] as Card[]),
+    serverGet<Locations>('/v1/locations', { revalidate: 3600, tags: [TAGS.reference] }).then(l => l.areas, e => { if (building) return []; throw e; }),
+    liveListings().catch(e => { if (building) return [] as Card[]; throw e; }),
   ]);
   return [
     entry(l => `/${l}`),

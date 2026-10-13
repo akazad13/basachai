@@ -65,7 +65,18 @@ public interface IAddressProtector
     string Unprotect(byte[] data);
 }
 
-/// <summary>Salted hashes for IP addresses and device IDs; raw values are never stored.</summary>
+/// <summary>
+/// The web app's edge-cached pages (home, area and property pages, 60 seconds). After a change that a visitor could
+/// see, the API asks the web app to drop the affected pages at once (content-and-localization spec, SEO).
+/// Never throws: a failed purge only means the page refreshes within 60 seconds.
+/// </summary>
+public interface IPageCache
+{
+    /// <param name="listingShortIds">Listings whose public view changed (their pages and every listing page).</param>
+    /// <param name="everything">Reference data or many listings changed: drop every cached page.</param>
+    Task InvalidateAsync(IReadOnlyCollection<string> listingShortIds, bool everything = false);
+}
+
 /// <summary>Keyed hashes (HMAC-SHA256), so IPs and device ids cannot be recovered by trying guesses.</summary>
 public interface IHasher
 {

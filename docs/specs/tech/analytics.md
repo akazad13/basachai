@@ -8,7 +8,7 @@ Version 1.0 · 13 October 2026 · Covers FR-20
 
 | Event | Recorded by | Properties |
 | --- | --- | --- |
-| `search_performed` | API | `filters` (object), `sort`, `resultCount`, `source` (`home`, `search`) |
+| `search_performed` | Web app (browser, via `POST /v1/events`; one per search per tab in 30 minutes, so Back does not count it again), or API for direct `GET /v1/listings` calls with `X-Search-Source` | `filters` (object), `sort`, `resultCount`, `source` (`home`, `search`) |
 | `listing_viewed` | Web, via `POST /events` | `listingId`, `referrer` (`search`, `home`, `saved`, `direct`) |
 | `contact_revealed` | API | `listingId`, `signedIn` |
 | `listing_submitted` | API | `listingId`, `first` (bool) |

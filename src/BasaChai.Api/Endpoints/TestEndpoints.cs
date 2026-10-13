@@ -28,7 +28,8 @@ public static class TestEndpoints
             return await next(ctx);
         });
 
-        t.MapPost("/seed", async (SeedBody body, TestSeeder seeder, IClockControl clockControl, TimeProvider clock, IAppDbContext db) =>
+        // Seeding and moving the clock change what every page shows (expiry is decided when read): drop all cached pages.
+        t.MapPost("/seed", async (SeedBody body, TestSeeder seeder, IClockControl clockControl, TimeProvider clock, IAppDbContext db, IPageCache pages) =>
         {
             // Last line of defence against a mis-pointed connection string: never wipe a database not meant for tests.
             var name = db.Database.GetDbConnection().Database;
@@ -36,12 +37,14 @@ public static class TestEndpoints
                 throw Errors.Conflict("not_a_test_database", "Seeding is only allowed on test or staging databases.");
             clockControl.Reset();
             await seeder.SeedAsync(body.Dataset ?? "pilot", clock.GetUtcNow());
+            await pages.InvalidateAsync([], everything: true);
             return Results.NoContent();
         });
 
-        t.MapPost("/clock", (ClockBody body, IClockControl clockControl) =>
+        t.MapPost("/clock", async (ClockBody body, IClockControl clockControl, IPageCache pages) =>
         {
             clockControl.Advance(TimeSpan.FromDays(body.OffsetDays));
+            await pages.InvalidateAsync([], everything: true);
             return Results.NoContent();
         });
 

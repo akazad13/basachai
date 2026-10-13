@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BasaChai.Api.Endpoints;
 
 public sealed record ReportBody(string? Reason, string? Details);
-public sealed record EventBody(string? Name, string? ListingId, string? Referrer);
+public sealed record EventBody(string? Name, string? ListingId, string? Referrer, string? Query = null, int? ResultCount = null, string? Source = null);
 public sealed record PhotoOrderBody(IReadOnlyList<Guid>? Order);
 
 public static class ListingEndpoints
@@ -49,8 +49,17 @@ public static class ListingEndpoints
         pub.MapPost("/events", async (EventBody body, HttpContext http, PublicListingService svc) =>
         {
             // Only client-side events are accepted here; everything else is recorded by the API itself.
-            if (body.Name != "listing_viewed" || string.IsNullOrEmpty(body.ListingId)) throw ValidationFailedException.For("name", "invalid");
-            await svc.RecordViewAsync(body.ListingId, body.Referrer, http.Context(issueCookies: true));
+            // Searches are reported by the browser because search and area pages may be served from the edge cache.
+            switch (body.Name)
+            {
+                case "listing_viewed" when !string.IsNullOrEmpty(body.ListingId):
+                    await svc.RecordViewAsync(body.ListingId, body.Referrer, http.Context(issueCookies: true));
+                    break;
+                case "search_performed" when body.ResultCount is >= 0:
+                    await svc.RecordSearchAsync(body.Query ?? "", body.ResultCount.Value, body.Source, http.Context(issueCookies: true));
+                    break;
+                default: throw ValidationFailedException.For("name", "invalid");
+            }
             return Results.Accepted();
         });
 

@@ -22,4 +22,5 @@ $env:ASPNETCORE_ENVIRONMENT = 'Test'
 $env:ASPNETCORE_URLS = 'http://localhost:5080'
 $env:Auth__TestTotpBypass = 'true'
 $env:Web__Origin = 'http://localhost:3000'
+$env:Web__RevalidateUrl = 'http://localhost:3000/api/revalidate'   # purges the web app's cached pages
 dotnet run --project (Join-Path $root 'src/BasaChai.Api') --no-launch-profile

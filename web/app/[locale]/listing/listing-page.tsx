@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { ApiError, serverGet } from '@/lib/api';
+import { ApiError, PAGE_SECONDS, serverGet, TAGS } from '@/lib/api';
 import { dayMonth, isAvailableNow, num, type Lang } from '@/lib/format';
 import { hueFor, photoUrl } from '@/lib/photos';
 import type { ListingDetail } from '@/lib/types';
@@ -17,27 +17,36 @@ import { Gallery } from './gallery';
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 
-/** Loads a listing. The session cookie is forwarded so an owner or moderator can preview a listing that is not live. */
-export const loadListing = cache(async (shortId: string): Promise<ListingDetail> => {
-  const auth = (await cookies()).get('bc_auth');
+/**
+ * Loads a listing. The public page is the visitor's view, cached at the edge and purged by the API when the listing
+ * changes. A preview (/listing/{id}/preview) forwards the session cookie, so an owner or moderator sees a listing that
+ * is not live; it is never cached.
+ */
+export const loadListing = cache(async (shortId: string, preview = false): Promise<ListingDetail> => {
+  if (!isShortId(shortId)) notFound();   // junk ids never reach the API or the page cache
+  const path = `/v1/listings/${encodeURIComponent(shortId)}`;
   try {
-    return await serverGet<ListingDetail>(`/v1/listings/${encodeURIComponent(shortId)}`,
-      { headers: auth ? { Cookie: `bc_auth=${auth.value}` } : {} });
+    if (!preview) return await serverGet<ListingDetail>(path, { revalidate: PAGE_SECONDS, tags: [TAGS.listing(shortId)] });
+    const auth = (await cookies()).get('bc_auth');
+    return await serverGet<ListingDetail>(path, { headers: auth ? { Cookie: `bc_auth=${auth.value}` } : {} });
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
   }
 });
 
+export const isShortId = (id: string) => /^[A-Za-z0-9]{1,16}$/.test(id);
+
 /** The canonical, readable URL: /bn/rent/dhaka/dhamrai/{area}/{slug}-{shortId}. */
 export function canonicalPath(lang: string, d: ListingDetail) {
   return `/${lang}/rent/dhaka/dhamrai/${d.card!.area.slug}/${d.card!.slug}-${d.card!.shortId}`;
 }
 
-export async function listingMetadata(lang: Lang, shortId: string): Promise<Metadata> {
-  const d = await loadListing(shortId);
+export async function listingMetadata(lang: Lang, shortId: string, preview = false): Promise<Metadata> {
+  const d = await loadListing(shortId, preview);
   const t = await getTranslations({ locale: lang });
-  if (!d.available || !d.card) return { title: t('not_found'), robots: { index: false, follow: false } };
+  if (!d.available || !d.card) return { title: d.card?.title ?? t('not_found'), robots: { index: false, follow: false } };
+  if (preview) return { title: d.card.title, robots: { index: false, follow: false } };
   const c = d.card;
   const summary = `${areaName(lang, c.area)} · ${c.bedrooms === 0 ? t('studio') : t('beds_n', { n: num(lang, c.bedrooms) })} · ${t('total_month')} ৳${num(lang, c.monthlyTotal)}`;
   return {
@@ -51,9 +60,9 @@ export async function listingMetadata(lang: Lang, shortId: string): Promise<Meta
   };
 }
 
-export async function ListingPage({ lang, shortId }: { lang: Lang; shortId: string }) {
+export async function ListingPage({ lang, shortId, preview = false }: { lang: Lang; shortId: string; preview?: boolean }) {
   const t = await getTranslations();
-  const d = await loadListing(shortId);
+  const d = await loadListing(shortId, preview);
 
   if (!d.card) {
     return (

@@ -1,17 +1,23 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { daysAgo, isFresh, type Lang } from '@/lib/format';
 
-/** "Confirmed 3 days ago" with a green dot within 7 days, brass after. */
+/**
+ * "Confirmed 3 days ago" with a green dot within 7 days, brass after. Pages are cached at the edge, so the server's
+ * "now" can be old: the browser recomputes the text with its own clock once loaded.
+ */
 export function Freshness({ at }: { at: string | null }) {
   const t = useTranslations();
   const lang = useLocale() as Lang;
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => setNow(Date.now()), []);
   if (!at) return null;
+  const time = now ?? undefined;
   return (
-    // Relative time can differ by a day between server and browser around midnight.
-    <span className={`fresh${isFresh(at) ? '' : ' old'}`} suppressHydrationWarning>
-      {t('confirmed', { t: daysAgo(lang, at) })}
+    <span className={`fresh${isFresh(at, time) ? '' : ' old'}`} suppressHydrationWarning>
+      {t('confirmed', { t: daysAgo(lang, at, time) })}
     </span>
   );
 }

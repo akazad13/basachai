@@ -29,3 +29,14 @@ test('L10N-TC03 toggle keeps the listing; canonical and hreflang', async ({ page
   await expect(page.locator('link[rel="alternate"][hreflang="bn"]')).toHaveCount(1);
   await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveCount(1);
 });
+
+test('L10N-TC04 pages still load after every page was purged', async ({ page }, info) => {
+  const lang = info.project.name.slice(0, 2);
+  const paths = ['about', 'how-it-works', 'safety', 'support', 'terms', 'privacy'].map(p => `/${lang}/${p}`)
+    .concat([`/${lang}`, `/${lang}/rent/dhaka/dhamrai/dokkhin`, `/${lang}/listing/D3`]);
+  for (const path of paths) {
+    const response = await page.goto(path);
+    expect(response?.status(), path).toBe(200);
+    await expect(page.locator('main h1').first(), path).toBeVisible();
+  }
+});

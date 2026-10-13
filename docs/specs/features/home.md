@@ -35,7 +35,7 @@ Version 1.0 · 13 October 2026 · Route `/` (`/bn`, `/en`) · Covers FR-01, D20
 - **Search form** builds the search URL with only the filled fields and navigates to `/search?...`. Empty fields are omitted.
 - **Recent homes** are the 4 Live, unhidden, unexpired listings with the latest `last_confirmed_at`. If fewer than 4 exist, show what exists; the grid must not leave a single card alone on a row at 2 x 2 (with 3 listings, show 2).
 - **Cost example** uses a Live listing chosen by an admin setting; if none is set, use the most recently confirmed listing that has at least one extra monthly cost.
-- The page is server-rendered and cached at the edge for 60 seconds.
+- The page is server-rendered and cached at the edge for 60 seconds, and purged as soon as a listing or setting it shows changes.
 
 ## States
 

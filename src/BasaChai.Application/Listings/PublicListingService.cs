@@ -186,6 +186,28 @@ public sealed class PublicListingService(IAppDbContext db, ReferenceCache refs, 
         await db.SaveChangesAsync(ct);
     }
 
+    /// <summary>
+    /// Records a search the browser showed (the page itself may come from the edge cache). The filters are parsed
+    /// from the query string exactly as a search is, so only known filters and values are stored.
+    /// </summary>
+    public async Task RecordSearchAsync(string query, int resultCount, string? source, RequestContext ctx, CancellationToken ct = default)
+    {
+        var now = clock.GetUtcNow();
+        // Its own budget, so searches and views (many visitors can share one mobile IP) do not use up each other's.
+        if (limiter.TryHit("search-events-ip", ctx.IpKey, EventsPerHour, TimeSpan.FromHours(1)) is { } wait) throw new RateLimitedException(wait);
+        var values = (query.Length > 1000 ? "" : query).TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Select(pair => pair.Split('=', 2))
+            .GroupBy(kv => Uri.UnescapeDataString(kv[0].Replace('+', ' ')))
+            .ToDictionary(g => g.Key, g => g.First() is { Length: 2 } kv ? Uri.UnescapeDataString(kv[1].Replace('+', ' ')) : "");
+        var q = SearchQuery.Parse(k => values.GetValueOrDefault(k));
+        db.Track(now, "search_performed", new
+        {
+            filters = q.Filters(), sort = q.Sort, resultCount = Math.Min(resultCount, 100_000),
+            source = source is "home" or "search" ? source : null,
+        }, ctx);
+        await db.SaveChangesAsync(ct);
+    }
+
     /// <summary>Counts a view. Repeated views of one listing in one session count once an hour.</summary>
     public async Task RecordViewAsync(string shortId, string? referrer, RequestContext ctx, CancellationToken ct = default)
     {
