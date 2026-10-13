@@ -15,7 +15,7 @@ Version 1.1 · 13 October 2026 · Runbook: [`deploy/README.md`](../../../deploy/
 | Secrets | `/etc/basachai/api.env`, root-owned, mode 600: database password, Cloudinary secret, Data Protection settings; never in git or CI logs |
 | Auth | Identity cookie (HttpOnly, Secure, SameSite=Lax); antiforgery header; CORS to the web origin only; 2FA for staff |
 | Input and output | FluentValidation on every request; EF Core parameters only; HTML stripped from owner text; escaped output in Next.js |
-| Headers | Content Security Policy, `X-Content-Type-Options`, `Referrer-Policy`, frame denial |
+| Headers | Content Security Policy (scripts from the site only; images from the site, the API, Cloudinary and the demo-photo host; connections to the site and the API; no plugins or framing), `X-Content-Type-Options`, `Referrer-Policy`. Scripts allow `'unsafe-inline'`: per-request nonces would make every page render per request and switch off page caching |
 | Address | Encrypted at column level; Data Protection key ring on its own volume and backed up |
 | Privacy | Only name, phone and password hash required; IPs, device IDs and analytics sessions stored as keyed hashes with a salt that rotates every calendar month (UTC), combined with the server secret; salts older than the previous month are deleted and backups leave the salts out (`hash_salts`), so older hashes can no longer be linked to anyone; rate-limit keys and cookie signatures use the stable secret and are never stored; account deletion |
 | Least privilege | Separate database roles: `basachai_migrator` owns the schema; `basachai_api` reads and writes rows only, with `audit_log` insert-only. The migrate step grants these rights |

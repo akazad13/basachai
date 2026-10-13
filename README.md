@@ -33,8 +33,8 @@ Without Cloudinary keys, uploads in Development and Test are kept on the API's d
 ## Tests
 
 ```powershell
-dotnet test                      # 103 domain + 93 API tests; needs Docker for PostgreSQL
-cd web; npx playwright test      # E2E: needs the API (seedable) and the web app running
+dotnet test                      # 103 domain + 117 API tests (2 skip without Cloudinary keys); needs Docker
+cd web; npx playwright test      # 193 E2E runs across bn-mobile, bn-desktop, en-desktop; needs the API and web app
 ```
 
 The Playwright files are copied from the specs: change a test in its spec, then run `node scripts/extract-e2e.mjs` in `web/`.
@@ -44,7 +44,7 @@ The Playwright files are copied from the specs: change a test in its spec, then 
 | Setting | Where | Notes |
 | --- | --- | --- |
 | `ConnectionStrings:Main` | API | PostgreSQL |
-| `Hashing:Salt` | API | Required in Production (16+ characters); salts IP and device hashes |
+| `Hashing:Salt` | API | Required in Production (16+ characters); server secret combined with a monthly salt (kept in the database) for IP and device hashes |
 | `Auth:CookieDomain` | API | `.{domain}` so the web app and API share the session |
 | `Web:Origin` | API | CORS origin and reset-link base |
 | `Web:RevalidateUrl`, `Web:RevalidateSecret` | API | The web app's `/api/revalidate`, to purge cached pages after changes |
@@ -55,3 +55,19 @@ The Playwright files are copied from the specs: change a test in its spec, then 
 | `NEXT_PUBLIC_API_URL`, `API_URL` | Web | Browser and server-side API base URLs |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD` | Web | Builds photo URLs |
 | `REVALIDATE_SECRET` | Web | Same value as the API's `Web:RevalidateSecret` |
+
+## Status
+
+Everything in the MVP specs is built and tested. What remains needs accounts, a server or decisions:
+
+| Item | Needs | Spec |
+| --- | --- | --- |
+| Server setup, firewall, SSH deploy, port check (OPS-CHK01) | A VPS (Q1) | [security and operations](docs/specs/tech/security-and-operations.md) |
+| First CI run | The repository on GitHub | `.github/workflows/ci.yml` |
+| Page caching on Netlify's edge | A staging deploy; check an owner's edit shows at once | [content and localization](docs/specs/design/content-and-localization.md#seo) |
+| The two skipped photo tests | A Cloudinary test account and keys | [photos](docs/specs/tech/photos.md) |
+| Restore drill on a fresh server (OPS-CHK02) | Off-site backup storage (Q3) | [security and operations](docs/specs/tech/security-and-operations.md) |
+| Uptime alert check (OPS-CHK03) | An uptime monitor | [security and operations](docs/specs/tech/security-and-operations.md) |
+| Area spelling aliases, admin reset identity check, brand and legal review | Decisions Q5, Q7, Q10 | [open questions](docs/specs/open-questions.md) |
+
+Known and accepted: the content security policy allows inline scripts, because per-request nonces would switch off page caching.

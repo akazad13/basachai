@@ -10,7 +10,7 @@ Version 1.0 · 13 October 2026
 - IDs in URLs: `shortId` for public listing routes, `id` (uuid) for owner and admin routes.
 - Lists use keyset cursors: `cursor` and `size` (max 24); responses include `nextCursor`.
 - Money is whole taka integers. Dates are ISO 8601 UTC.
-- Public GET responses send `Cache-Control: public, s-maxage=60`.
+- Public GET responses send `Cache-Control: public, s-maxage=60`. Cloudflare has no cache rule for them: the web app's page cache is the only cache, so a purge is never undone by a stale API copy ([caching](../design/content-and-localization.md#seo)).
 - `GET /listings` records `search_performed` when called with `X-Search-Source: home` or `search` (API clients). The web app's server renders send `X-Search-Source: none` and the browser reports the search through `POST /events` instead. It is recorded once per search: not for "Show more" pages (a `cursor` is present). Browser calls send the visit id (`bc_visit` cookie) as `X-Session-Id`, so a visit's searches and reveals share a session.
 - Test-only hooks under `/v1/test/*` exist only in the Test and Staging environments; see [quality and testing](quality-and-testing.md#test-hooks). Staging requires the `X-Test-Key` header (`Test:HookKey`), and seeding refuses a database whose name does not contain "test" or "staging".
 
