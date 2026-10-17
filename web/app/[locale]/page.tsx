@@ -18,7 +18,11 @@ async function load() {
     serverGet<Locations>('/v1/locations', cached([TAGS.reference])),
   ]);
   // A cached page must not store an outage: throwing keeps the last good page (or shows the error page uncached).
-  for (const r of [recent, home, locations]) if (r.status === 'rejected') throw r.reason;
+  // The build may not reach the API: don't throw during build so static generation completes.
+  const building = process.env.NEXT_PHASE === 'phase-production-build';
+  if (!building) {
+    for (const r of [recent, home, locations]) if (r.status === 'rejected') throw r.reason;
+  }
   return {
     recent: recent.status === 'fulfilled' ? recent.value.items : null,
     example: home.status === 'fulfilled' ? home.value.costExample : null,
