@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/setup-dotnet@v6
         with: { dotnet-version: "10.0.x" }
       # Domain tests, and API tests against PostgreSQL in Testcontainers. The Cloudinary contract tests run in their own job.
       - run: dotnet test --filter "Category!=Cloudinary"
@@ -86,7 +86,7 @@ jobs:
       NEXT_PUBLIC_API_URL: http://localhost:5080
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/setup-dotnet@v6
         with: { dotnet-version: "10.0.x" }
       - uses: actions/setup-node@v5
         with: { node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json }
@@ -134,7 +134,7 @@ jobs:
       REQUIRE_CLOUDINARY: "1"   # missing credentials fail the tests instead of skipping them
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/setup-dotnet@v6
         with: { dotnet-version: "10.0.x" }
       - name: Require the test account
         run: |
