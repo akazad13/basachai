@@ -14,7 +14,7 @@ namespace BasaChai.Api.Tests.Infrastructure;
 /// <summary>The API on a real PostgreSQL 17 in a container, with a fake clock and a hand-written photo store (no Moq, D21).</summary>
 public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _db = new PostgreSqlBuilder().WithImage("postgres:17").Build();
+    private readonly PostgreSqlContainer _db = new PostgreSqlBuilder("postgres:17").Build();
 
     public FakeTimeProvider Clock { get; } = new(DateTimeOffset.Parse("2026-10-13T06:00:00Z"));
     public FakePhotoStore Photos { get; } = new();
