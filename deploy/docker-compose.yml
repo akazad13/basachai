@@ -10,7 +10,7 @@ x-logging: &logging
 
 services:
   postgres:
-    image: postgres:17
+    image: postgres:18
     restart: unless-stopped
     mem_limit: ${PG_MEM:-1536m}
     command: >
