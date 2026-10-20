@@ -1,7 +1,7 @@
 // Extracted from specs/features/property-page.md by scripts/extract-e2e.mjs. Edit the spec, then re-extract.
 // web/e2e/property.spec.ts
 import { test, expect } from './fixtures';
-import { listing, USERS } from './seed-data';
+import { listing } from './seed-data';
 
 test.beforeEach(async ({ seed }) => { await seed('pilot'); });
 
@@ -46,7 +46,7 @@ test('PROP-TC04 owner is labelled, number is not verified', async ({ page, lang,
   await expect(page.getByText(t('not_verified'))).toBeVisible();
 });
 
-test('PROP-TC05 report needs a reason', async ({ page, lang, t, api }) => {
+test('PROP-TC05 report needs a reason', async ({ page, lang, t }) => {
   await page.goto(`/${lang}/listing/B2`);
   await page.getByRole('button', { name: t('report') }).click();
   const dialog = page.getByRole('dialog', { name: t('report_t') });

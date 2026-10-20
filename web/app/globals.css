@@ -1,5 +1,10 @@
 /* BasaChai global styles. Source: BasaChai-Prototype.html (design-system spec). Light theme only (D19). */
+@import './fonts.css';
+
 :root {
+    --font-baloo: 'Baloo Da 2';
+    --font-noto: 'Noto Sans Bengali';
+    --font-nunito: 'Nunito';
     --paper: #F4F6F2;
     --surface: #FFFFFF;
     --ink: #17231F;

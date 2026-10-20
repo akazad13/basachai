@@ -47,7 +47,7 @@ public class ModerationTests(ApiFactory f) : IClassFixture<ApiFactory>, IAsyncLi
         Assert.Equal((3, 15, 2, 2), (stats!.Pending, stats.Live, stats.OpenReports, stats.Overdue));
         var queue = await mod.GetFromJsonAsync<List<QueueItemDto>>("/v1/admin/listings?status=pending");
         Assert.Equal(["P1", "M4", "P2"], queue!.Select(q => q.ShortId));
-        Assert.Equal([true, false, false], queue.Select(q => q.Overdue));
+        Assert.Equal([true, false, false], queue!.Select(q => q.Overdue));
     }
 
     [Fact] // MOD-2
@@ -68,7 +68,7 @@ public class ModerationTests(ApiFactory f) : IClassFixture<ApiFactory>, IAsyncLi
         var mod = await f.AsAsync("moderator");
         var reports = await mod.GetFromJsonAsync<List<ReportDto>>("/v1/admin/reports");
         Assert.Equal(2, reports!.Count(r => r.ListingShortId == "Z2"));
-        var r1 = reports.First(r => r.ListingShortId == "Z2" && r.Reason == "suspicious");
+        var r1 = reports!.First(r => r.ListingShortId == "Z2" && r.Reason == "suspicious");
         (await mod.PostAsJsonAsync($"/v1/admin/reports/{r1.Id}/resolve", new { Action = "hide" })).EnsureSuccessStatusCode();
         var open = await mod.GetFromJsonAsync<List<ReportDto>>("/v1/admin/reports");
         Assert.Equal(["I2"], open!.Select(r => r.ListingShortId));
