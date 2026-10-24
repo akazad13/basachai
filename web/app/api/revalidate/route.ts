@@ -22,10 +22,10 @@ export async function POST(request: Request) {
   if (all === true) {
     // Every page built from API data. Not revalidatePath('/', 'layout'): that also drops the static pages, and ones
     // with dynamicParams = false (the footer pages) then cannot regenerate and turn 404.
-    revalidateTag(TAGS.pages);
+    revalidateTag(TAGS.pages, { expire: 0 });
   } else {
-    for (const id of listings) revalidateTag(TAGS.listing(id));
-    if (listings.length) revalidateTag(TAGS.listings);   // home and area pages list them
+    for (const id of listings) revalidateTag(TAGS.listing(id), { expire: 0 });
+    if (listings.length) revalidateTag(TAGS.listings, { expire: 0 });   // home and area pages list them
   }
   return Response.json({ purged: all === true ? 'all' : listings });
 }
